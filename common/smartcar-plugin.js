@@ -184,7 +184,33 @@
     }
 
     // ── Compile & Upload ─────────────────────────────────────
-    function doCompile() {
+    async function uploadModel() {
+        const tflite = window.__mixly_tflite;
+        if (!tflite || !tflite.modelData) return null;
+
+        const formData = new FormData();
+        const modelBlob = new Blob([tflite.modelData]);
+        formData.append('model', modelBlob, 'model.tflite');
+        if (tflite.labelsText) {
+            formData.append('labels', new Blob([tflite.labelsText]), 'labels.txt');
+        }
+
+        try {
+            const resp = await fetch('/upload-model', { method: 'POST', body: formData });
+            const data = await resp.json();
+            if (data.error) {
+                output('[Error] Model upload failed: ' + data.error);
+                return null;
+            }
+            output('[TFLite] Model uploaded (session: ' + data.sessionId + ')\n');
+            return data.sessionId;
+        } catch (e) {
+            output('[Error] Model upload failed: ' + e.message);
+            return null;
+        }
+    }
+
+    async function doCompile() {
         if (!connected) { alert('Not connected to backend server'); return; }
         showOutput();
         const term = getTerminal();
@@ -192,10 +218,18 @@
         showLoader('Compiling...');
         const code = getCode();
         const boardType = getBoardType();
-        sendCommand('ArduShell', 'compile', [1, boardType, code]);
+
+        let modelSessionId = null;
+        if (window.__mixly_tflite && window.__mixly_tflite.modelData) {
+            modelSessionId = await uploadModel();
+        }
+
+        const args = [1, boardType, code];
+        if (modelSessionId) args.push(modelSessionId);
+        sendCommand('ArduShell', 'compile', args);
     }
 
-    function doUpload() {
+    async function doUpload() {
         if (!connected) { alert('Not connected to backend server'); return; }
         const port = getSelectedPort();
         if (!port || port === 'null' || port === 'undefined' || port === '') {
@@ -208,7 +242,15 @@
         showLoader('Uploading...');
         const code = getCode();
         const boardType = getBoardType();
-        sendCommand('ArduShell', 'upload', [1, boardType, port, code]);
+
+        let modelSessionId = null;
+        if (window.__mixly_tflite && window.__mixly_tflite.modelData) {
+            modelSessionId = await uploadModel();
+        }
+
+        const args = [1, boardType, port, code];
+        if (modelSessionId) args.push(modelSessionId);
+        sendCommand('ArduShell', 'upload', args);
     }
 
     // ── Loader UI ────────────────────────────────────────────

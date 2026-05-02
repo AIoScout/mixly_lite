@@ -70,6 +70,7 @@ import {
     ArduinoESP32StorageBlocks,
     ArduinoESP32ToolsBlocks,
     ArduinoESP32SmartCarBlocks,
+    ArduinoESP32TFLiteVisionBlocks,
     ArduinoESP32ActuatorGenerators,
     ArduinoESP32CommunicateGenerators,
     ArduinoESP32ControlGenerators,
@@ -86,6 +87,7 @@ import {
     ArduinoESP32StorageGenerators,
     ArduinoESP32ToolsGenerators,
     ArduinoESP32SmartCarGenerators,
+    ArduinoESP32TFLiteVisionGenerators,
     ArduinoESP32ZhHans,
     ArduinoESP32ZhHant,
     ArduinoESP32En
@@ -149,7 +151,8 @@ Object.assign(
     ArduinoESP32SidanBlocks,
     ArduinoESP32StorageBlocks,
     ArduinoESP32ToolsBlocks,
-    ArduinoESP32SmartCarBlocks
+    ArduinoESP32SmartCarBlocks,
+    ArduinoESP32TFLiteVisionBlocks
  );
 
 Object.assign(
@@ -190,5 +193,6 @@ Object.assign(
     ArduinoESP32SidanGenerators,
     ArduinoESP32StorageGenerators,
     ArduinoESP32ToolsGenerators,
-    ArduinoESP32SmartCarGenerators
+    ArduinoESP32SmartCarGenerators,
+    ArduinoESP32TFLiteVisionGenerators
 );
