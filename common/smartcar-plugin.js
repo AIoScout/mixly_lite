@@ -20,6 +20,8 @@
             while (pendingMessages.length > 0) {
                 ws.send(pendingMessages.shift());
             }
+            // Request real port list from server
+            refreshRealPorts();
         };
         ws.onmessage = (event) => {
             const msg = event.data;
@@ -91,7 +93,9 @@
         if (!cmd) return;
         const { obj, func, args = [] } = cmd;
 
-        if (func === 'addValue' && args.length >= 1) {
+        if (obj === 'Mixly.WebSocket.Serial' && func === 'setPorts') {
+            handleSerialPorts(cmd);
+        } else if (func === 'addValue' && args.length >= 1) {
             output(args[0]);
         } else if (func === 'operateSuccess') {
             hideLoader();
@@ -131,11 +135,56 @@
         } catch { return 'esp32:esp32:esp32'; }
     }
 
-    function getSelectedPort() {
+    // ── Real Serial Port Selection ──────────────────────────
+    // The Mixly #ports-type dropdown uses Web Serial API synthetic names
+    // like "serial1" which are NOT valid arduino-cli port paths.
+    // Instead, query the server's SerialPort.list() which returns real
+    // OS-level paths (/dev/cu.usbserial-xxx, COM3, etc.).
+
+    let realPorts = [];
+    let selectedRealPort = null;
+
+    async function refreshRealPorts() {
         try {
-            const select = document.getElementById('ports-type');
-            return select ? select.value : null;
-        } catch { return null; }
+            sendCommand('Serial', 'list', []);
+            // Response arrives via handleResponse -> handleSerialPorts
+        } catch (e) {
+            console.error('[SmartCar] refreshRealPorts error:', e);
+        }
+    }
+
+    function handleSerialPorts(cmd) {
+        if (!cmd.args || !cmd.args[0]) return;
+        try {
+            realPorts = JSON.parse(cmd.args[0]);
+            updatePortSelector();
+        } catch (e) {
+            console.error('[SmartCar] parse ports error:', e);
+        }
+    }
+
+    function updatePortSelector() {
+        const select = document.getElementById('smartcar-port-select');
+        if (!select) return;
+        const prev = select.value;
+        select.innerHTML = '<option value="">-- select port --</option>';
+        for (const p of realPorts) {
+            const label = p.path + (p.manufacturer ? ' (' + p.manufacturer + ')' : '');
+            const opt = document.createElement('option');
+            opt.value = p.path;
+            opt.textContent = label;
+            select.appendChild(opt);
+        }
+        // Restore previous selection if still available
+        if (prev && realPorts.some(p => p.path === prev)) {
+            select.value = prev;
+        }
+        selectedRealPort = select.value || null;
+    }
+
+    function getSelectedPort() {
+        const select = document.getElementById('smartcar-port-select');
+        return select ? select.value || null : null;
     }
 
     // ── Compile & Upload ─────────────────────────────────────
@@ -196,6 +245,19 @@
         }
     }
 
+    function hideMixlyPortDropdown() {
+        // Hide the Mixly #ports-type dropdown which shows fake Web Serial
+        // names like "serial1" that don't work with arduino-cli
+        const style = document.createElement('style');
+        style.textContent = `
+            #ports-type, select[m-id="ports-type"],
+            label[for="ports-type"], .ports-type-label {
+                display: none !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     function injectButtons() {
         // Find the left button container
         const container = document.querySelector('.left-btn-container');
@@ -227,7 +289,24 @@
         uploadBtn.innerHTML = '<a class="icon-upload">上传</a>';
         uploadBtn.onclick = doUpload;
 
+        // Real port selector (not the Mixly #ports-type dropdown)
+        const portSelect = document.createElement('select');
+        portSelect.id = 'smartcar-port-select';
+        portSelect.style.cssText = 'font-size:12px;padding:2px 4px;margin:0 4px;max-width:180px;border:1px solid #ccc;border-radius:3px;';
+        portSelect.innerHTML = '<option value="">-- select port --</option>';
+        portSelect.onchange = function() { selectedRealPort = this.value; };
+
+        // Refresh ports button
+        const refreshBtn = document.createElement('button');
+        refreshBtn.id = 'smartcar-refresh-ports';
+        refreshBtn.style.cssText = 'font-size:12px;padding:2px 6px;margin-right:4px;cursor:pointer;border:1px solid #ccc;border-radius:3px;background:#f5f5f5;';
+        refreshBtn.textContent = '🔄';
+        refreshBtn.title = 'Refresh ports';
+        refreshBtn.onclick = refreshRealPorts;
+
         container.appendChild(status);
+        container.appendChild(portSelect);
+        container.appendChild(refreshBtn);
         container.appendChild(compileBtn);
         container.appendChild(uploadBtn);
 
@@ -236,6 +315,7 @@
 
     // ── Init ─────────────────────────────────────────────────
     function init() {
+        hideMixlyPortDropdown();
         injectButtons();
         connectWS();
     }
