@@ -16,10 +16,10 @@
             console.log('[SmartCar] WebSocket connected');
             connected = true;
             updateStatus('Connected', true);
-            // Send pending messages
             while (pendingMessages.length > 0) {
                 ws.send(pendingMessages.shift());
             }
+            refreshRealPorts();
         };
         ws.onmessage = (event) => {
             const msg = event.data;
@@ -91,7 +91,9 @@
         if (!cmd) return;
         const { obj, func, args = [] } = cmd;
 
-        if (func === 'addValue' && args.length >= 1) {
+        if (obj === 'Mixly.WebSocket.Serial' && func === 'setPorts') {
+            handleSerialPorts(cmd);
+        } else if (func === 'addValue' && args.length >= 1) {
             output(args[0]);
         } else if (func === 'operateSuccess') {
             hideLoader();
@@ -111,12 +113,10 @@
     // ── Get Code from Blockly ────────────────────────────────
     function getCode() {
         try {
-            // Try to get code from the code editor
             const workspace = Mixly.Workspace.getMain();
             const editorsManager = workspace.getEditorsManager();
             const editor = editorsManager.getActive();
             if (editor && editor.getCode) return editor.getCode();
-            // Fallback: generate from blocks
             const blockEditor = editorsManager.getEditorByType('blockly');
             if (blockEditor && blockEditor.getCode) return blockEditor.getCode();
         } catch(e) {
@@ -131,11 +131,56 @@
         } catch { return 'esp32:esp32:esp32'; }
     }
 
-    function getSelectedPort() {
+    // ── Real Serial Port Selection ──────────────────────────
+    // Repopulate the existing Mixly #ports-type select2 with real
+    // OS-level port paths from the server's SerialPort.list(),
+    // replacing the fake Web Serial names (serial1, serial2, etc.).
+
+    let realPorts = [];
+
+    async function refreshRealPorts() {
         try {
-            const select = document.getElementById('ports-type');
-            return select ? select.value : null;
-        } catch { return null; }
+            sendCommand('Serial', 'list', []);
+        } catch (e) {
+            console.error('[SmartCar] refreshRealPorts error:', e);
+        }
+    }
+
+    function handleSerialPorts(cmd) {
+        if (!cmd.args || !cmd.args[0]) return;
+        try {
+            realPorts = JSON.parse(cmd.args[0]);
+            updatePortSelector();
+        } catch (e) {
+            console.error('[SmartCar] parse ports error:', e);
+        }
+    }
+
+    function updatePortSelector() {
+        const select = document.getElementById('ports-type');
+        if (!select) return;
+        const prev = select.value;
+        // Clear and repopulate with real ports
+        select.innerHTML = '<option value="">Select Port</option>';
+        for (const p of realPorts) {
+            const label = p.path + (p.manufacturer ? ' (' + p.manufacturer + ')' : '');
+            const opt = document.createElement('option');
+            opt.value = p.path;
+            opt.textContent = label;
+            select.appendChild(opt);
+        }
+        // Restore previous selection if still available
+        if (prev && realPorts.some(p => p.path === prev)) {
+            select.value = prev;
+        }
+        // Trigger select2 to re-render
+        try { $(select).trigger('change'); } catch(e) {}
+    }
+
+    function getSelectedPort() {
+        const select = document.getElementById('ports-type');
+        if (!select) return null;
+        try { return $(select).val() || null; } catch(e) { return select.value || null; }
     }
 
     // ── Compile & Upload ─────────────────────────────────────
@@ -153,7 +198,7 @@
     function doUpload() {
         if (!connected) { alert('Not connected to backend server'); return; }
         const port = getSelectedPort();
-        if (!port || port === 'null') {
+        if (!port || port === 'null' || port === 'undefined' || port === '') {
             alert('Please select a serial port first');
             return;
         }
@@ -196,15 +241,30 @@
         }
     }
 
+    function widenPortSelector() {
+        // Make the port select2 wider to fit long port paths
+        // e.g. /dev/cu.usbmodem1101 (Silicon Labs)
+        const style = document.createElement('style');
+        style.textContent = `
+            /* Widen the port select2 container and its dropdown */
+            .dropdown-container > span.select2:last-of-type,
+            .dropdown-container > span.select2:last-of-type .select2-selection {
+                width: 280px !important;
+            }
+            .dropdown-container > span.select2:last-of-type .select2-dropdown {
+                width: 280px !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     function injectButtons() {
-        // Find the left button container
         const container = document.querySelector('.left-btn-container');
         if (!container) {
             setTimeout(injectButtons, 500);
             return;
         }
 
-        // Check if already injected
         if (document.getElementById('smartcar-compile-btn')) return;
 
         // Status indicator
@@ -227,20 +287,35 @@
         uploadBtn.innerHTML = '<a class="icon-upload">上传</a>';
         uploadBtn.onclick = doUpload;
 
+        // Refresh ports button in the nav dropdown area
+        const refreshBtn = document.createElement('button');
+        refreshBtn.id = 'smartcar-refresh-ports';
+        refreshBtn.className = 'layui-btn layui-btn-xs layui-btn-primary mixly-nav';
+        refreshBtn.innerHTML = '<a style="font-size:14px;">&#x21bb;</a>';
+        refreshBtn.title = 'Refresh ports';
+        refreshBtn.style.cssText = 'padding:0 4px;';
+        refreshBtn.onclick = refreshRealPorts;
+
         container.appendChild(status);
         container.appendChild(compileBtn);
         container.appendChild(uploadBtn);
+
+        // Add refresh button next to the port selector in dropdown-container
+        const dropdownContainer = document.querySelector('.dropdown-container');
+        if (dropdownContainer && !document.getElementById('smartcar-refresh-ports')) {
+            dropdownContainer.appendChild(refreshBtn);
+        }
 
         console.log('[SmartCar] Buttons injected');
     }
 
     // ── Init ─────────────────────────────────────────────────
     function init() {
+        widenPortSelector();
         injectButtons();
         connectWS();
     }
 
-    // Wait for page to load
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => setTimeout(init, 1000));
     } else {
