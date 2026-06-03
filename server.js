@@ -26,6 +26,9 @@ const MIXLY_TFLITE_LIB = path.join(PROJECT_ROOT, 'Mixly_TFLite');
 const LIBRARIES_DIR = path.join(PROJECT_ROOT, 'libraries');
 const MODEL_DIR = path.join(PROJECT_ROOT, '.model_uploads');
 
+// P4 IMX219 camera library path — set this to the location of the ESP32_P4_IMX219 Arduino library
+const P4_IMX219_LIB = process.env.P4_IMX219_LIB || path.join(PROJECT_ROOT, 'P4_IMX219');
+
 // ── MIME types ─────────────────────────────────────────────────
 const MIME = {
     '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
@@ -192,6 +195,23 @@ function ensureTFLiteLibInstalled(callback) {
     });
 }
 
+// ── ESP32-P4 Board Support ────────────────────────────────────
+function isP4Board(boardType) {
+    return boardType && boardType.includes('esp32p4');
+}
+
+function deployP4IMX219Lib() {
+    // Copy P4 IMX219 camera library to libraries/ if it exists
+    if (!fs.existsSync(P4_IMX219_LIB)) {
+        console.log('[p4] IMX219 library not found at', P4_IMX219_LIB, '(skipping)');
+        return;
+    }
+    const destLib = path.join(LIBRARIES_DIR, 'ESP32_P4_IMX219');
+    if (fs.existsSync(destLib)) fs.rmSync(destLib, { recursive: true });
+    fs.cpSync(P4_IMX219_LIB, destLib, { recursive: true });
+    console.log('[p4] Deployed IMX219 camera library');
+}
+
 function parseMultipart(req) {
     return new Promise((resolve, reject) => {
         const boundary = req.headers['content-type']?.match(/boundary=(.+)/)?.[1];
@@ -328,6 +348,11 @@ function handleCompile(ws, args) {
             deployMixlyTFLiteLib(modelSessionId || null);
         }
 
+        // Deploy P4 IMX219 camera library when compiling for ESP32-P4
+        if (isP4Board(boardType)) {
+            deployP4IMX219Lib();
+        }
+
         runArduinoCLI(ws, [
             'compile', '-b', boardType,
             '--build-path', buildPath, '--libraries', LIBRARIES_DIR,
@@ -363,6 +388,11 @@ function handleUpload(ws, args) {
 
         if (useTFLite || modelSessionId) {
             deployMixlyTFLiteLib(modelSessionId || null);
+        }
+
+        // Deploy P4 IMX219 camera library when compiling for ESP32-P4
+        if (isP4Board(boardType)) {
+            deployP4IMX219Lib();
         }
 
         runArduinoCLI(ws, [
@@ -515,6 +545,7 @@ httpServer.listen(PORT, () => {
     console.log(`    arduino-cli:           ${ARDUINO_CLI}`);
     console.log(`    SmartCar library:      ${SMARTCAR_LIB}`);
     console.log(`    Mixly_TFLite library:  ${MIXLY_TFLITE_LIB}`);
+    console.log(`    P4 IMX219 library:     ${P4_IMX219_LIB}`);
     console.log('');
     console.log('    Open http://localhost:3000 in your browser');
     console.log('');
