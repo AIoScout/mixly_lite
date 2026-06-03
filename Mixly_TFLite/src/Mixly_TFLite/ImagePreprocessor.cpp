@@ -1,5 +1,4 @@
 #include "ImagePreprocessor.hpp"
-#include <cmath>
 
 namespace TFLiteVision {
 
@@ -41,6 +40,13 @@ void PreprocessFrame(const uint8_t* src, float* dst,
                 dst[idx + 2] = b / 255.0f;
             }
         }
+    }
+}
+
+void PreprocessGrayscaleToInt8(const uint8_t* src, int8_t* dst, int pixelCount) {
+    for (int i = 0; i < pixelCount; i++) {
+        // uint8 [0..255] → int8 [-128..127]
+        dst[i] = static_cast<int8_t>(static_cast<int>(src[i]) - 128);
     }
 }
 

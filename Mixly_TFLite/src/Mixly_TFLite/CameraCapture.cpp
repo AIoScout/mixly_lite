@@ -1,6 +1,37 @@
 #include "CameraCapture.hpp"
 
-#if defined(ESP32)
+// ============================================================================
+// ESP32-P4 path: IMX219 MIPI CSI-2 camera
+// ============================================================================
+#if defined(CONFIG_IDF_TARGET_ESP32P4)
+
+#include "P4IMX219.hpp"
+
+namespace TFLiteVision {
+
+static int s_lastBpp = 1; // P4 outputs grayscale (1 byte per pixel)
+
+bool InitCamera(int width, int height) {
+    s_lastBpp = 1;
+    return P4IMX219::Init(width, height);
+}
+
+uint8_t* CaptureFrame(int* outWidth, int* outHeight, int* outBpp) {
+    if (outBpp) *outBpp = s_lastBpp;
+    return P4IMX219::CaptureFrame(outWidth, outHeight);
+}
+
+void ReturnFrame(uint8_t* fb) {
+    P4IMX219::ReturnFrame();
+}
+
+} // namespace TFLiteVision
+
+// ============================================================================
+// ESP32-S3 path: OV-series DVP camera via esp_camera
+// ============================================================================
+#elif defined(ESP32)
+
 #include "esp_camera.h"
 
 // ESP32-S3-EYE pin definitions
@@ -22,10 +53,12 @@
 #define CAM_PIN_PCLK    13
 
 static camera_fb_t* s_lastFb = nullptr;
+static int s_lastBpp = 2; // S3 outputs RGB565 (2 bytes per pixel)
 
 namespace TFLiteVision {
 
 bool InitCamera(int width, int height) {
+    s_lastBpp = 2;
     camera_config_t config = {};
     config.pin_pwdn     = CAM_PIN_PWDN;
     config.pin_reset    = CAM_PIN_RESET;
@@ -64,11 +97,13 @@ bool InitCamera(int width, int height) {
         return false;
     }
 
-    Serial.println("[TFLite] Camera initialized");
+    Serial.println("[TFLite] Camera initialized (S3 DVP)");
     return true;
 }
 
-uint8_t* CaptureFrame(int* outWidth, int* outHeight) {
+uint8_t* CaptureFrame(int* outWidth, int* outHeight, int* outBpp) {
+    if (outBpp) *outBpp = s_lastBpp;
+
     // Return previous frame buffer if not yet returned
     if (s_lastFb) {
         esp_camera_fb_return(s_lastFb);
@@ -95,9 +130,12 @@ void ReturnFrame(uint8_t* fb) {
 } // namespace TFLiteVision
 
 #else
+// ============================================================================
+// Fallback stubs
+// ============================================================================
 namespace TFLiteVision {
 bool InitCamera(int, int) { return false; }
-uint8_t* CaptureFrame(int*, int*) { return nullptr; }
+uint8_t* CaptureFrame(int*, int*, int*) { return nullptr; }
 void ReturnFrame(uint8_t*) {}
 }
 #endif
