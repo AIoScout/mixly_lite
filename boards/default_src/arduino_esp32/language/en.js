@@ -201,4 +201,27 @@ En.SMARTCAR_SET_TARGET_RPM_TOOLTIP = 'Set target RPM for both wheels';
 En.SMARTCAR_IMU_INIT_TOOLTIP = 'Initialize the IMU sensor';
 En.SMARTCAR_IMU_SET_FILTER_TOOLTIP = 'Set the IMU gyro and accelerometer filter values';
 
+// AI Vision
+En.AIVISION_INIT_EYE = 'initialize AI Eye (camera + AI)';
+En.AIVISION_INIT_EYE_TOOLTIP = 'Initialize camera, AI model, and communication on the AI Eye board';
+En.AIVISION_INIT_BODY = 'initialize AI Body (receive results)';
+En.AIVISION_INIT_BODY_TOOLTIP = 'Initialize as the AI Body board to receive AI results from the AI Eye';
+En.AIVISION_UPLOAD_MODEL = 'load AI model';
+En.AIVISION_UPLOAD_MODEL_TOOLTIP = 'Upload a .tflite model and labels file';
+En.AIVISION_USE_PSRAM = 'use PSRAM';
+En.AIVISION_USE_INTERNAL = 'use internal RAM';
+En.AIVISION_PREDICT = 'AI prediction';
+En.AIVISION_PREDICT_TOOLTIP = 'Get AI prediction result';
+En.AIVISION_PREDICT_LABEL = 'label';
+En.AIVISION_PREDICT_INDEX = 'class index';
+En.AIVISION_PREDICT_CONFIDENCE = 'confidence';
+En.AIVISION_CLASS_COUNT = 'number of classes';
+En.AIVISION_CLASS_COUNT_TOOLTIP = 'Get total number of classes in the AI model';
+En.AIVISION_HAS_NEW_RESULT = 'has new AI result';
+En.AIVISION_HAS_NEW_RESULT_TOOLTIP = 'True when a new AI result is available';
+En.AIVISION_SEND_RESULT = 'send AI result to partner';
+En.AIVISION_SEND_RESULT_TOOLTIP = 'Send the last AI prediction to the partner board (auto-sent by default)';
+En.AIVISION_SET_UART_PINS = 'set communication pins';
+En.AIVISION_SET_UART_PINS_TOOLTIP = 'Set UART communication pins (default: TX=43, RX=44)';
+
 export default En;

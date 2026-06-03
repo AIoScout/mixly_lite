@@ -3449,20 +3449,21 @@
 
   <!-- AI Vision Category -->
   <category id="catTFLiteVision" name="AI Vision" colour="#FF6F00">
-    <block type="tflite_camera_init">
-      <value name="WIDTH">
-        <shadow type="math_number">
-          <field name="NUM">96</field>
-        </shadow>
+    <block type="aivision_init_eye">
+      <field name="USE_PSRAM">true</field>
+    </block>
+    <block type="aivision_init_body"></block>
+    <block type="aivision_upload_model"></block>
+    <block type="aivision_predict"></block>
+    <block type="aivision_class_count"></block>
+    <block type="aivision_has_new_result"></block>
+    <block type="aivision_send_result"></block>
+    <block type="aivision_set_uart_pins">
+      <value name="TX_PIN">
+        <shadow type="math_number"><field name="NUM">43</field></shadow>
       </value>
-      <value name="HEIGHT">
-        <shadow type="math_number">
-          <field name="NUM">96</field>
-        </shadow>
+      <value name="RX_PIN">
+        <shadow type="math_number"><field name="NUM">44</field></shadow>
       </value>
     </block>
-    <block type="tflite_upload_model"></block>
-    <block type="tflite_model_init"></block>
-    <block type="tflite_predict"></block>
-    <block type="tflite_get_class_count"></block>
   </category>

@@ -1,52 +1,48 @@
 // ============================================
-// TFLite Vision Code Generators for Arduino ESP32
+// AI Vision Code Generators for Arduino ESP32
 // ============================================
 
-const addTFLiteDefinitions = function (generator) {
-    generator.definitions_['include_Mixly_TFLite'] = '#include "Mixly_TFLite/TFLiteEngine.hpp"';
+const addAIVisionDefinitions = function (generator) {
+    generator.definitions_['include_AIVision'] = '#include "Mixly_TFLite/AIVision.hpp"';
     generator.definitions_['include_model_data'] = '#include "Mixly_TFLite/model_data.h"';
 };
 
 // ============================================
-// CAMERA INIT
+// AI EYE INIT
 // ============================================
 
-export const tflite_camera_init = function (_, generator) {
-    addTFLiteDefinitions(generator);
-
-    var width = generator.valueToCode(this, 'WIDTH', generator.ORDER_ATOMIC) || '96';
-    var height = generator.valueToCode(this, 'HEIGHT', generator.ORDER_ATOMIC) || '96';
-
-    generator.setups_['tflite_camera_init'] =
-        '  TFLiteVision::InitCamera(' + width + ', ' + height + ');\n';
-
-    return '';
-};
-
-// ============================================
-// MODEL UPLOAD
-// ============================================
-
-export const tflite_upload_model = function (_, generator) {
-    // This block's purpose is:
-    // 1. Provide the UI for uploading model+labels (handled by FieldFileUpload)
-    // 2. Ensure model_data.h is included (so the server knows to deploy the lib)
-    addTFLiteDefinitions(generator);
-
-    return '';
-};
-
-// ============================================
-// MODEL INIT
-// ============================================
-
-export const tflite_model_init = function (_, generator) {
-    addTFLiteDefinitions(generator);
+export const aivision_init_eye = function (_, generator) {
+    addAIVisionDefinitions(generator);
 
     var usePSRAM = this.getFieldValue('USE_PSRAM');
 
-    generator.setups_['tflite_model_init'] =
-        '  TFLiteVision::InitModel(g_model_data, g_model_data_len, ' + usePSRAM + ');\n';
+    generator.setups_['aivision_init'] =
+        '  AIVision::InitEye(96, 96, g_model_data, g_model_data_len, ' + usePSRAM + ');\n';
+
+    return '';
+};
+
+// ============================================
+// AI BODY INIT
+// ============================================
+
+export const aivision_init_body = function (_, generator) {
+    addAIVisionDefinitions(generator);
+
+    generator.setups_['aivision_init'] =
+        '  AIVision::InitBody(g_model_data, g_model_data_len);\n';
+
+    return '';
+};
+
+// ============================================
+// UPLOAD MODEL
+// ============================================
+
+export const aivision_upload_model = function (_, generator) {
+    // Provides UI for uploading model+labels (handled by FieldFileUpload).
+    // Ensures model_data.h is included so the server knows to deploy the lib.
+    addAIVisionDefinitions(generator);
 
     return '';
 };
@@ -55,15 +51,15 @@ export const tflite_model_init = function (_, generator) {
 // PREDICT
 // ============================================
 
-export const tflite_predict = function (_, generator) {
-    addTFLiteDefinitions(generator);
+export const aivision_predict = function (_, generator) {
+    addAIVisionDefinitions(generator);
 
     var resultType = this.getFieldValue('RESULT_TYPE');
 
     var codeMap = {
-        LABEL: 'TFLiteVision::Predict().label',
-        INDEX: 'TFLiteVision::Predict().classIndex',
-        CONFIDENCE: 'TFLiteVision::Predict().confidence'
+        LABEL: 'AIVision::Predict().label',
+        INDEX: 'AIVision::Predict().classIndex',
+        CONFIDENCE: 'AIVision::Predict().confidence'
     };
 
     return [codeMap[resultType] || codeMap['LABEL'], generator.ORDER_ATOMIC];
@@ -73,8 +69,44 @@ export const tflite_predict = function (_, generator) {
 // CLASS COUNT
 // ============================================
 
-export const tflite_get_class_count = function (_, generator) {
-    addTFLiteDefinitions(generator);
+export const aivision_class_count = function (_, generator) {
+    addAIVisionDefinitions(generator);
 
-    return ['TFLiteVision::GetClassCount()', generator.ORDER_ATOMIC];
+    return ['AIVision::GetClassCount()', generator.ORDER_ATOMIC];
+};
+
+// ============================================
+// HAS NEW RESULT
+// ============================================
+
+export const aivision_has_new_result = function (_, generator) {
+    addAIVisionDefinitions(generator);
+
+    return ['AIVision::HasNewResult()', generator.ORDER_ATOMIC];
+};
+
+// ============================================
+// SEND RESULT
+// ============================================
+
+export const aivision_send_result = function (_, generator) {
+    addAIVisionDefinitions(generator);
+
+    return 'AIVision::SendResult();\n';
+};
+
+// ============================================
+// SET UART PINS
+// ============================================
+
+export const aivision_set_uart_pins = function (_, generator) {
+    addAIVisionDefinitions(generator);
+
+    var txPin = generator.valueToCode(this, 'TX_PIN', generator.ORDER_ATOMIC) || '43';
+    var rxPin = generator.valueToCode(this, 'RX_PIN', generator.ORDER_ATOMIC) || '44';
+
+    generator.setups_['aivision_uart_pins'] =
+        '  AIVision::SetUARTPins(' + txPin + ', ' + rxPin + ');\n';
+
+    return '';
 };

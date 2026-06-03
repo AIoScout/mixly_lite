@@ -1,100 +1,144 @@
 import * as Blockly from 'blockly/core';
 import { FieldFileUpload } from './FieldFileUpload';
 
-const TFLITE_HUE = '#FF6F00';  // Orange for AI Vision
+const AIVISION_HUE = '#FF6F00';  // Orange for AI Vision
 
 // ============================================
-// CAMERA INIT BLOCK
+// AI EYE INIT (P4 — camera + model + UART TX)
 // ============================================
 
-export const tflite_camera_init = {
+export const aivision_init_eye = {
     init: function () {
-        this.setColour(TFLITE_HUE);
+        this.setColour(AIVISION_HUE);
         this.appendDummyInput()
-            .appendField(Blockly.Msg.TFLITE_CAMERA_INIT || "init camera");
-        this.appendValueInput("WIDTH")
-            .setCheck(Number)
-            .setAlign(Blockly.inputs.Align.RIGHT)
-            .appendField(Blockly.Msg.TFLITE_WIDTH || "width");
-        this.appendValueInput("HEIGHT")
-            .setCheck(Number)
-            .setAlign(Blockly.inputs.Align.RIGHT)
-            .appendField(Blockly.Msg.TFLITE_HEIGHT || "height");
-        this.setInputsInline(true);
-        this.setPreviousStatement(true, null);
-        this.setNextStatement(true, null);
-        this.setTooltip("Initialize ESP32-S3 camera with given resolution");
-    }
-};
-
-// ============================================
-// MODEL UPLOAD BLOCK
-// ============================================
-
-export const tflite_upload_model = {
-    init: function () {
-        this.setColour(TFLITE_HUE);
-        this.appendDummyInput()
-            .appendField(Blockly.Msg.TFLITE_UPLOAD_MODEL || "load AI model");
-        this.appendDummyInput('MODEL_FILE')
-            .appendField(new FieldFileUpload(''), 'MODEL');
-        this.setPreviousStatement(true, null);
-        this.setNextStatement(true, null);
-        this.setTooltip("Upload a Teachable Machine .tflite model and labels.txt");
-    }
-};
-
-// ============================================
-// MODEL INIT BLOCK
-// ============================================
-
-export const tflite_model_init = {
-    init: function () {
-        this.setColour(TFLITE_HUE);
-        this.appendDummyInput()
-            .appendField(Blockly.Msg.TFLITE_MODEL_INIT || "init AI model");
+            .appendField(Blockly.Msg.AIVISION_INIT_EYE || "initialize AI Eye (camera + AI)");
         this.appendDummyInput()
             .appendField(new Blockly.FieldDropdown([
-                ["use PSRAM", "true"],
-                ["use internal RAM", "false"]
+                [Blockly.Msg.AIVISION_USE_PSRAM || "use PSRAM", "true"],
+                [Blockly.Msg.AIVISION_USE_INTERNAL || "use internal RAM", "false"]
             ]), "USE_PSRAM");
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setTooltip("Initialize the TFLite model interpreter");
+        this.setTooltip(Blockly.Msg.AIVISION_INIT_EYE_TOOLTIP || "Initialize camera, AI model, and communication on the AI Eye board");
     }
 };
 
 // ============================================
-// PREDICT BLOCK
+// AI BODY INIT (S3 — UART RX)
 // ============================================
 
-export const tflite_predict = {
+export const aivision_init_body = {
     init: function () {
-        this.setColour(TFLITE_HUE);
+        this.setColour(AIVISION_HUE);
         this.appendDummyInput()
-            .appendField(Blockly.Msg.TFLITE_PREDICT || "AI prediction");
+            .appendField(Blockly.Msg.AIVISION_INIT_BODY || "initialize AI Body (receive results)");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.AIVISION_INIT_BODY_TOOLTIP || "Initialize as the AI Body board to receive AI results from the AI Eye");
+    }
+};
+
+// ============================================
+// UPLOAD MODEL
+// ============================================
+
+export const aivision_upload_model = {
+    init: function () {
+        this.setColour(AIVISION_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.AIVISION_UPLOAD_MODEL || "load AI model");
+        this.appendDummyInput('MODEL_FILE')
+            .appendField(new FieldFileUpload(''), 'MODEL');
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.AIVISION_UPLOAD_MODEL_TOOLTIP || "Upload a .tflite model and labels file");
+    }
+};
+
+// ============================================
+// PREDICT
+// ============================================
+
+export const aivision_predict = {
+    init: function () {
+        this.setColour(AIVISION_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.AIVISION_PREDICT || "AI prediction");
         this.appendDummyInput()
             .appendField(new Blockly.FieldDropdown([
-                ["label", "LABEL"],
-                ["class index", "INDEX"],
-                ["confidence", "CONFIDENCE"]
+                [Blockly.Msg.AIVISION_PREDICT_LABEL || "label", "LABEL"],
+                [Blockly.Msg.AIVISION_PREDICT_INDEX || "class index", "INDEX"],
+                [Blockly.Msg.AIVISION_PREDICT_CONFIDENCE || "confidence", "CONFIDENCE"]
             ]), "RESULT_TYPE");
         this.setOutput(true, null);
-        this.setTooltip("Capture image and run AI prediction");
+        this.setTooltip(Blockly.Msg.AIVISION_PREDICT_TOOLTIP || "Get AI prediction result");
     }
 };
 
 // ============================================
-// CLASS COUNT BLOCK
+// CLASS COUNT
 // ============================================
 
-export const tflite_get_class_count = {
+export const aivision_class_count = {
     init: function () {
-        this.setColour(TFLITE_HUE);
+        this.setColour(AIVISION_HUE);
         this.appendDummyInput()
-            .appendField(Blockly.Msg.TFLITE_CLASS_COUNT || "number of classes");
+            .appendField(Blockly.Msg.AIVISION_CLASS_COUNT || "number of classes");
         this.setOutput(true, Number);
-        this.setTooltip("Get total number of classes in the model");
+        this.setTooltip(Blockly.Msg.AIVISION_CLASS_COUNT_TOOLTIP || "Get total number of classes in the AI model");
+    }
+};
+
+// ============================================
+// HAS NEW RESULT
+// ============================================
+
+export const aivision_has_new_result = {
+    init: function () {
+        this.setColour(AIVISION_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.AIVISION_HAS_NEW_RESULT || "has new AI result");
+        this.setOutput(true, Boolean);
+        this.setTooltip(Blockly.Msg.AIVISION_HAS_NEW_RESULT_TOOLTIP || "True when a new AI result is available");
+    }
+};
+
+// ============================================
+// SEND RESULT
+// ============================================
+
+export const aivision_send_result = {
+    init: function () {
+        this.setColour(AIVISION_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.AIVISION_SEND_RESULT || "send AI result to partner");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.AIVISION_SEND_RESULT_TOOLTIP || "Send the last AI prediction to the partner board (auto-sent by default)");
+    }
+};
+
+// ============================================
+// SET UART PINS
+// ============================================
+
+export const aivision_set_uart_pins = {
+    init: function () {
+        this.setColour(AIVISION_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.AIVISION_SET_UART_PINS || "set communication pins");
+        this.appendValueInput("TX_PIN")
+            .setCheck(Number)
+            .setAlign(Blockly.inputs.Align.RIGHT)
+            .appendField("TX");
+        this.appendValueInput("RX_PIN")
+            .setCheck(Number)
+            .setAlign(Blockly.inputs.Align.RIGHT)
+            .appendField("RX");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.AIVISION_SET_UART_PINS_TOOLTIP || "Set UART communication pins (default: TX=43, RX=44)");
     }
 };

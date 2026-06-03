@@ -120,4 +120,27 @@ ZhHant.ESP32_CONFIG_MESSAGE_USB_MODE = XML.render(ZhHant.ESP32_CONFIG_TEMPLATE, 
 
 ZhHant.BOARD_FS = '闆卡文件管理';
 
+// AI Vision
+ZhHant.AIVISION_INIT_EYE = '初始化 AI 眼睛（攝影機+AI）';
+ZhHant.AIVISION_INIT_EYE_TOOLTIP = '在 AI 眼睛板上初始化攝影機、AI模型和通信';
+ZhHant.AIVISION_INIT_BODY = '初始化 AI 身體（接收結果）';
+ZhHant.AIVISION_INIT_BODY_TOOLTIP = '初始化為 AI 身體板，接收來自 AI 眼睛的辨識結果';
+ZhHant.AIVISION_UPLOAD_MODEL = '載入 AI 模型';
+ZhHant.AIVISION_UPLOAD_MODEL_TOOLTIP = '上傳 .tflite 模型和標籤檔案';
+ZhHant.AIVISION_USE_PSRAM = '使用 PSRAM';
+ZhHant.AIVISION_USE_INTERNAL = '使用內部 RAM';
+ZhHant.AIVISION_PREDICT = 'AI 預測';
+ZhHant.AIVISION_PREDICT_TOOLTIP = '取得 AI 預測結果';
+ZhHant.AIVISION_PREDICT_LABEL = '標籤';
+ZhHant.AIVISION_PREDICT_INDEX = '類別編號';
+ZhHant.AIVISION_PREDICT_CONFIDENCE = '信心度';
+ZhHant.AIVISION_CLASS_COUNT = '類別數量';
+ZhHant.AIVISION_CLASS_COUNT_TOOLTIP = '取得 AI 模型中的類別總數';
+ZhHant.AIVISION_HAS_NEW_RESULT = '有新 AI 結果';
+ZhHant.AIVISION_HAS_NEW_RESULT_TOOLTIP = '當有新的 AI 結果時為真';
+ZhHant.AIVISION_SEND_RESULT = '發送 AI 結果給夥伴';
+ZhHant.AIVISION_SEND_RESULT_TOOLTIP = '將上次 AI 預測結果發送給夥伴板（預設自動發送）';
+ZhHant.AIVISION_SET_UART_PINS = '設定通訊引腳';
+ZhHant.AIVISION_SET_UART_PINS_TOOLTIP = '設定 UART 通訊引腳（預設：TX=43, RX=44）';
+
 export default ZhHant;
