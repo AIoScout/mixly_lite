@@ -179,6 +179,16 @@ int GetClassCount() {
 }
 
 bool HasNewResult() {
+    // S3 body: poll UART for new packets before checking
+    if (s_isBody && !s_hasNew) {
+        if (UARTBridge::Update()) {
+            int labelId = UARTBridge::GetLabelId();
+            s_lastPred.classIndex = labelId;
+            s_lastPred.confidence = UARTBridge::GetConfidence();
+            s_lastPred.label = TFLiteVision::GetLabel(labelId);
+            s_hasNew = true;
+        }
+    }
     bool result = s_hasNew;
     s_hasNew = false;
     return result;
