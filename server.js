@@ -26,8 +26,8 @@ const MIXLY_TFLITE_LIB = path.join(PROJECT_ROOT, 'Mixly_TFLite');
 const LIBRARIES_DIR = path.join(PROJECT_ROOT, 'libraries');
 const MODEL_DIR = path.join(PROJECT_ROOT, '.model_uploads');
 
-// P4 IMX219 camera library path — set this to the location of the ESP32_P4_IMX219 Arduino library
-const P4_IMX219_LIB = process.env.P4_IMX219_LIB || path.join(PROJECT_ROOT, 'P4_IMX219');
+// P4 IMX219 camera library — submodule at ESP32-P4-IMX219-PoC (Arduino branch)
+const P4_IMX219_LIB = process.env.P4_IMX219_LIB || path.join(PROJECT_ROOT, 'ESP32-P4-IMX219-PoC');
 
 // ── MIME types ─────────────────────────────────────────────────
 const MIME = {
