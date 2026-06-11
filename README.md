@@ -3,311 +3,158 @@
     <img src="https://foruda.gitee.com/images/1677155717148882961/0c044ac0_5225463.png" width="100" alt="Mixly">
   </a>
 </p>
-<h2 align="center">Mixly-lite (ISD-IoT Fork)</h2>
+<h2 align="center">Mixly Lite — AIoScout Fork</h2>
 
-Original Repo: https://github.com/mixly/mixly_lite
+Fork of [mixly/mixly_lite](https://github.com/mixly/mixly_lite) with SmartCar blocks, AI Vision (TFLite), and a compile/upload backend.
 
 ---
 
-## SmartCar Custom Blocks
+## Features
 
-This fork adds custom block modules for the **ESP32 IoT Smart Car** project, supporting the following boards:
-- **Arduino ESP32** (C++ code generation)
-- **MicroPython ESP32-S3** (MicroPython code generation)
+### 🚗 SmartCar Blocks
+Motor, servo, IR sensor, ultrasonic, RFID, buzzer, Firebase, PID, IMU — for ESP32 IoT Smart Car.
 
-### Available Blocks
+### 🤖 AI Vision (TFLite)
+Block-based AI image classification using TensorFlow Lite. Dual-board architecture:
 
-| Category | Blocks | Description |
-|----------|--------|-------------|
-| **Motors** | move_forward, move_backward, rotate_left, rotate_right, stop | Motor control |
-| **Motors** | set_servo_angle, set_speed | Servo and speed control |
-| **IR Sensors** | read_ir_left, read_ir_middle, read_ir_right | IR sensor reading |
-| **IR Sensors** | get_track_state | Get line-tracking state |
-| **Ultrasonic** | get_distance_cm | Ultrasonic distance measurement |
-| **RFID** | read_rfid_tag, has_new_tag | RFID tag reading |
-| **Buzzer** | play_tone, buzzer_stop | Buzzer control |
-| **Firebase** | is_exam_activated, get_traffic_light_state, get_time_remain | Firebase cloud communication |
-| **PID Control** | set_pid_gains, get_left_rpm, get_right_rpm, set_target_rpm | PID speed control |
+- **AI Eye (ESP32-P4)** — IMX219 MIPI CSI-2 camera + TFLite inference + sends results over UART
+- **AI Body (ESP32-S3)** — receives AI results over UART + controls motors/etc.
 
-### Code Generation Examples
+Children use the same blocks regardless of board role. UART communication is hidden inside the C++ library.
 
-**Arduino ESP32:**
-```cpp
-#include "SmartCar/Movement.hpp"
-Movement::MoveForward();
-```
+| Block | Description |
+|-------|-------------|
+| Initialize AI Eye | P4: camera + model + UART transmitter |
+| Initialize AI Body | S3: UART receiver |
+| Load AI Model | Upload .tflite model + labels |
+| AI Prediction | Get label / class index / confidence |
+| Number of Classes | Get model class count |
+| Has New AI Result | Check for new result from partner board |
+| Send AI Result | Explicitly send to partner (auto-sent by default) |
+| Set Communication Pins | Set UART TX/RX pins (default 43/44) |
 
-**MicroPython ESP32-S3:**
-```python
-from smartcar import Movement
-Movement.move_forward()
-```
+### 💾 File Save/Load
+- **Ctrl+S** — Save As (.mix) first time, then saves to same file
+- **Ctrl+O** — Open .mix file
+- **Drag-drop** — Drop .mix/.xml files to load
+- **Auto-save** — Every 30s after first save
 
-## Running Locally
+---
 
-### Static File Server (Frontend only)
+## Quick Start
 
 ```bash
-python3 serve.py
-```
-Then open http://localhost:3000
-
-### Full Backend (Compile + Upload)
-
-For browser-based compile and upload to ESP32, start the Node.js WebSocket backend:
-
-```bash
-# Install dependencies (first time)
+# Install dependencies
 npm install
 
-# Start the server
+# Build Arduino board package
+npm run build:boards:arduino
+
+# Initialize ESP32-P4 IMX219 submodule (for P4 support)
+git submodule update --init
+
+# Start server (frontend + compile/upload backend)
 node server.js
 ```
 
-Then open http://localhost:3000 in your browser. The Mixly toolbar will show **编译** (Compile) and **上传** (Upload) buttons.
+Open http://localhost:3000
 
-Requirements:
-- `arduino-cli` installed and available in `PATH`
-- ESP32 board package installed in `arduino-cli`
+**Requirements:**
+- `arduino-cli` in PATH
+- ESP32 board package installed (`arduino-cli core install esp32:esp32`)
+- For AI Vision: `arduino-cli lib install TensorFlowLiteESP32`
 
-## Build Commands
-
-```bash
-# Install dependencies (first time)
-npm install
-
-# Build all Arduino boards
-npm run build:boards:arduino
-
-# Build all boards
-npm run build:boards:all
-
-# Start local server
-python3 serve.py
-```
+---
 
 ## Project Structure
 
 ```
 mixly_lite/
-├── SmartCar/                          # SmartCar C++ library (Arduino 1.5 format)
-│   ├── library.properties             # Library metadata for arduino-cli
-│   ├── src/
-│   │   ├── SmartCar.h                 # Discovery header (includes all modules)
-│   │   └── SmartCar/
-│   │       ├── MotorControl.hpp/cpp   # DC motor & servo control
-│   │       ├── Movement.hpp/cpp       # High-level movement commands
-│   │       ├── IRSensors.hpp/cpp      # IR sensor reading & state detection
-│   │       ├── UltrasonicSensor.hpp/cpp
-│   │       ├── RFIDReader.hpp/cpp     # MFRC522 RFID reader (I2C)
-│   │       ├── MFRC522_I2C.hpp/cpp    # MFRC522 I2C driver
-│   │       ├── Buzzer.hpp/cpp         # Buzzer control
-│   │       ├── Pinout.hpp             # GPIO pin definitions
-│   │       ├── registers.h            # MFRC522 register definitions
-│   │       └── pitches.h              # Musical note definitions
-├── server.js                          # Node.js WebSocket backend (compile/upload)
-├── common/smartcar-plugin.js          # Frontend plugin for compile/upload buttons
-├── boards/default_src/arduino_esp32/  # Arduino ESP32 board package
-│   ├── blocks/SmartCar.js             # Block visual definitions
-│   ├── generators/SmartCar.js         # C++ code generators
-│   ├── blocks/control.js              # FreeRTOS task blocks
-│   ├── generators/control.js          # FreeRTOS task generators
-│   └── origin/xml/esp32.xml           # Toolbox configuration
-└── boards/default_src/micropython_esp32s3/  # MicroPython ESP32-S3 package
+├── SmartCar/                          # SmartCar C++ library (Arduino 1.5)
+│   └── src/SmartCar/                  # MotorControl, Movement, IRSensors, etc.
+├── Mixly_TFLite/                      # TFLite C++ library
+│   └── src/Mixly_TFLite/
+│       ├── AIVision.hpp/cpp           # Unified API (InitEye/InitBody/Predict)
+│       ├── TFLiteEngine.hpp/cpp       # TFLite interpreter (int8 + float)
+│       ├── CameraCapture.hpp/cpp      # P4 (IMX219) / S3 (OV-series) camera
+│       ├── ImagePreprocessor.hpp/cpp  # RGB565→float, grayscale→int8
+│       ├── P4IMX219.hpp/cpp           # ESP32-P4 MIPI CSI-2 driver
+│       ├── UARTBridge.hpp/cpp         # P4→S3 UART protocol
+│       └── model_data.h              # Auto-generated from uploaded .tflite
+├── ESP32-P4-IMX219-PoC/              # Submodule: IMX219 camera driver
+├── server.js                          # Node.js backend (compile/upload/model upload)
+├── common/smartcar-plugin.js          # Frontend: buttons, file manager, WebSocket
+├── programs/                          # Example Mixly programs
+│   ├── p4_ai_eye.xml
+│   └── s3_ai_body.xml
+└── boards/default_src/arduino_esp32/  # Block definitions & code generators
+    ├── blocks/TFLiteVision.js
+    ├── generators/TFLiteVision.js
     ├── blocks/SmartCar.js
-    └── generators/SmartCar.js
+    ├── generators/SmartCar.js
+    └── origin/xml/esp32.xml
 ```
 
-### FreeRTOS Support
+---
 
-The ESP32 board includes built-in FreeRTOS multitasking blocks:
-- Create up to 8 concurrent tasks
-- Assign tasks to Core 0 (WiFi/networking) or Core 1 (robot control)
-- Configurable priority (1-4) and stack size
+## AI Vision Setup
 
-### Using SmartCar Library
-
-The `SmartCar/` folder is packaged as an **Arduino 1.5 library**. When using `server.js`, it is automatically copied to the `libraries/` directory and linked during compile/upload. The generated code uses:
-
-```cpp
-#include <SmartCar.h>
-#include "SmartCar/Movement.hpp"
-#include "SmartCar/IRSensors.hpp"
+### Hardware Wiring (P4 ↔ S3)
+```
+P4 TX (GPIO 43) → S3 RX (GPIO 44)
+P4 RX (GPIO 44) ← S3 TX (GPIO 43)
+Common GND
 ```
 
-If you are compiling manually with `arduino-cli`, use the `--libraries` flag:
+### Workflow
+1. Train a model using [AItraining](https://github.com/koilkl/Aitraining) or Google Teachable Machine
+2. Export as int8 quantized .tflite (96×96 grayscale)
+3. In Mixly: build P4 program (AI Eye) → select P4 board → upload
+4. In Mixly: build S3 program (AI Body) → select S3 board → upload
+5. P4 captures images, runs inference, sends results to S3 over UART
+6. S3 receives labels + confidence and drives motors, LEDs, etc.
 
-```bash
-arduino-cli compile -b esp32:esp32:esp32 --libraries ./libraries ./sketch_build
-```
+### ESP32-P4 Additional Setup
+Requires the custom P4 Arduino core. See `arduino/CORE_REBUILD.md` in the [Teachable Machine repo](https://github.com/AIoScout/Google-Teachable-Machine-TFLite-model-training).
 
 ---
 
 ## How to Create Custom Blocks
 
-### File Structure
+See [Custom Blocks Guide](#) — the existing `SmartCar.js` and `TFLiteVision.js` serve as reference implementations.
 
+### Key Files
 ```
-boards/default_src/<board_type>/
-├── blocks/           # Define block appearance
-│   └── YourBlock.js
-├── generators/       # Define code generation
-│   └── YourBlock.js
-├── export.js         # Export modules
-├── index.js          # Register to Blockly
-└── template.xml      # Toolbox categories
+boards/default_src/arduino_esp32/
+├── blocks/YourFeature.js       # Block visual definitions (export const block_name = { init() {} })
+├── generators/YourFeature.js   # Code generators (export const block_name = function(_, generator) {})
+├── export.js                   # Import and re-export
+├── index.js                    # Register to Blockly.Blocks and Blockly.Arduino.forBlock
+└── origin/xml/esp32.xml        # Toolbox (<block type="block_name">)
 ```
 
-### 1. Define Block (Visual Appearance)
-
-In `blocks/YourBlock.js`:
-
+### Block Pattern
 ```javascript
-// Simple statement block (no parameters)
+// blocks/YourFeature.js
 export const my_block = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("move forward");
-    this.setPreviousStatement(true);   // Connectable at top
-    this.setNextStatement(true);       // Connectable at bottom
-    this.setColour(290);               // Color (0-360)
-  }
+    init: function () {
+        this.setColour('#FF6F00');
+        this.appendDummyInput().appendField("do something");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+    }
 };
 
-// Block with number parameter
-export const my_speed_block = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("set speed")
-        .appendField(new Blockly.FieldNumber(50), "SPEED");
-    this.setPreviousStatement(true);
-    this.setNextStatement(true);
-    this.setColour(290);
-  }
-};
-
-// Block with dropdown
-export const my_servo_block = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("set servo")
-        .appendField(new Blockly.FieldDropdown([
-          ["Left", "LEFT"],
-          ["Right", "RIGHT"]
-        ]), "SERVO")
-        .appendField("angle")
-        .appendField(new Blockly.FieldNumber(90, 0, 180), "ANGLE");
-    this.setPreviousStatement(true);
-    this.setNextStatement(true);
-    this.setColour(290);
-  }
-};
-
-// Value block (expression - returns a value)
-export const my_value_block = {
-  init: function() {
-    this.appendDummyInput()
-        .appendField("distance (cm)");
-    this.setOutput(true, "Number");  // Has output
-    this.setColour(290);
-  }
-};
-```
-
-### 2. Define Generator (Code Generation)
-
-In `generators/YourBlock.js`:
-
-```javascript
-// Simple statement block
+// generators/YourFeature.js
 export const my_block = function (_, generator) {
-    // Add import (only once, deduplicated by key)
-    generator.definitions_['import_movement'] = 'from smartcar import Movement';
-
-    // Add initialization code (only once)
-    generator.definitions_['init_motors'] = 'Movement.init_motors()';
-
-    // Return generated code (must end with \n for statements)
-    return 'Movement.move_forward()\n';
-};
-
-// Block with parameters
-export const my_speed_block = function (_, generator) {
-    // Get parameter value
-    const speed = this.getFieldValue('SPEED');
-
-    generator.definitions_['import_movement'] = 'from smartcar import Movement';
-
-    return `Movement.set_speed(${speed})\n`;
-};
-
-// Block with dropdown
-export const my_servo_block = function (_, generator) {
-    const servo = this.getFieldValue('SERVO');  // "LEFT" or "RIGHT"
-    const angle = this.getFieldValue('ANGLE');
-
-    generator.definitions_['import_movement'] = 'from smartcar import Movement';
-
-    return `Movement.set_servo("${servo}", ${angle})\n`;
-};
-
-// Value block (expression)
-export const my_value_block = function (_, generator) {
-    generator.definitions_['import_ultrasonic'] = 'from smartcar import Ultrasonic';
-
-    // Return [code, precedence]
-    return ['Ultrasonic.get_distance_cm()', generator.ORDER_ATOMIC];
+    generator.definitions_['include_lib'] = '#include "MyLib.hpp"';
+    generator.setups_['my_init'] = '  MyLib::Init();\n';
+    return 'MyLib::DoSomething();\n';
 };
 ```
 
-### 3. Register Module
+---
 
-In `export.js`:
-```javascript
-import * as YourBlockBlocks from './blocks/YourBlock';
-import * as YourBlockGenerators from './generators/YourBlock';
+## License
 
-export {
-    YourBlockBlocks,
-    YourBlockGenerators
-};
-```
-
-In `index.js`:
-```javascript
-import { YourBlockBlocks, YourBlockGenerators } from './export';
-
-Object.assign(Blockly.Blocks, YourBlockBlocks);
-Object.assign(Blockly.Python.forBlock, YourBlockGenerators);
-```
-
-### 4. Add to Toolbox
-
-In `template.xml`:
-```xml
-<category id="catYourCategory" name="YourCategory" colour="290">
-  <block type="my_block"></block>
-  <block type="my_speed_block"></block>
-  <block type="my_value_block"></block>
-</category>
-```
-
-### 5. Rebuild
-
-```bash
-npm run build:boards:arduino
-```
-
-### Key Concepts
-
-| Concept | Description |
-|---------|-------------|
-| `appendDummyInput()` | No input slot |
-| `appendValueInput("NAME")` | Has input slot (can connect other blocks) |
-| `setPreviousStatement(true)` | Connectable at top |
-| `setNextStatement(true)` | Connectable at bottom |
-| `setOutput(true, "Type")` | Has output (expression block) |
-| `getFieldValue('NAME')` | Get parameter value |
-| `generator.definitions_['key']` | Add import/setup (deduplicated by key) |
-| `return 'code\n'` | Statement block returns string |
-| `return ['code', ORDER]` | Expression block returns array |
+MIT
