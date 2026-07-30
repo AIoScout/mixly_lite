@@ -21,21 +21,10 @@ namespace MotorControl {
     uint16_t Speed = 0; // Init set to 0
   };
 
-  // Configuration of Servo Motor (Front Wheel)
-  struct ServoMotor
-  {
-    const uint8_t PWMFrequency = 50; // PWM must be in 50Hz
-    const uint8_t PWMResolution = 10;
-    uint16_t PWMDuty = 0;
-    const uint8_t PWMChannel = 6; // Ideally select between 5-10
-    float TargetAngle = 0.0f;
-  };
-
   // Global motor instances
 
   extern DCMotor LeftWheel;
   extern DCMotor RightWheel;
-  extern ServoMotor FrontWheel;
 
   namespace DCMotorControl {
   /*Initialization of PWM channels for DC Motors*/
@@ -45,11 +34,6 @@ namespace MotorControl {
     void Stop(DCMotor& Motor);
   };
 
-  namespace ServoMotorControl {
-    /*Initialization of PWM Channel for Servo Motor*/
-    void Init();
-    void TurnDeg(ServoMotor& Motor); // in deg
-  }
 }
 
 // Interrupt Service Routine

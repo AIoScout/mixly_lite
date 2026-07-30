@@ -62,22 +62,6 @@ export const smartcar_stop = {
     }
 };
 
-export const smartcar_set_servo_angle = {
-    init: function () {
-        this.setColour(SMARTCAR_HUE);
-        this.appendDummyInput()
-            .appendField(Blockly.Msg.SMARTCAR_SET_SERVO || "set steering angle");
-        this.appendValueInput("ANGLE")
-            .setCheck(Number)
-            .setAlign(Blockly.inputs.Align.RIGHT)
-            .appendField(Blockly.Msg.SMARTCAR_ANGLE || "angle (45-135)");
-        this.setInputsInline(true);
-        this.setPreviousStatement(true, null);
-        this.setNextStatement(true, null);
-        this.setTooltip(Blockly.Msg.SMARTCAR_SET_SERVO_TOOLTIP || "Set the front servo angle (45-135 degrees, 90=center)");
-    }
-};
-
 export const smartcar_set_speed = {
     init: function () {
         this.setColour(SMARTCAR_HUE);
@@ -97,6 +81,17 @@ export const smartcar_set_speed = {
 // ============================================
 // IR SENSOR BLOCKS
 // ============================================
+
+export const ir_data_updata = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_IR_DATA_UPDATA || "IR data update");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.SMARTCAR_IR_DATA_UPDATA_TOOLTIP || "Read IR sensors and update the cached IR data");
+    }
+};
 
 export const smartcar_read_ir_left = {
     init: function () {
@@ -173,6 +168,16 @@ export const smartcar_has_new_tag = {
             .appendField(Blockly.Msg.SMARTCAR_HAS_NEW_TAG || "has new RFID tag");
         this.setOutput(true, Boolean);
         this.setTooltip(Blockly.Msg.SMARTCAR_HAS_NEW_TAG_TOOLTIP || "Check if a new RFID tag is present");
+    }
+};
+
+export const smartcar_rfid_update = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_RFID_UPDATE || "RFID update");
+        this.setOutput(true, Boolean);
+        this.setTooltip(Blockly.Msg.SMARTCAR_RFID_UPDATE_TOOLTIP || "Read the RFID card serial data and Returns true if a UID could be read");
     }
 };
 
@@ -331,110 +336,5 @@ export const smartcar_pid_update_loop = {
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setTooltip("Update encoder RPM and apply PID output to both wheel speeds");
-    }
-};
-
-
-// ============================================
-// IMU SENSOR BLOCKS
-// ============================================
-
-
-export const smartcar_imu_init = {
-    init: function () {
-        this.setColour(SMARTCAR_HUE);
-        this.appendDummyInput()
-            .setAlign(Blockly.inputs.Align.RIGHT)
-            .appendField(Blockly.Msg.IMU_INIT || "IMU Init");
-        this.setPreviousStatement(true, null);
-        this.setNextStatement(true, null);
-        this.setTooltip(Blockly.Msg.SMARTCAR_IMU_INIT_TOOLTIP || "Set up the IMU");
-    }
-};
-
-export const smartcar_imu_set_filter ={
-    init: function () {
-        this.setColour(SMARTCAR_HUE);
-        this.appendValueInput("GyroFilters")
-            .setCheck(Boolean)
-            .setAlign(Blockly.inputs.Align.RIGHT)
-            .appendField(Blockly.Msg.IMU_SET_GYRO_FILTER || "gyroFilters");
-        this.appendValueInput("AccFilters")
-            .setCheck(Boolean)
-            .setAlign(Blockly.inputs.Align.RIGHT)
-            .appendField(Blockly.Msg.IMU_SET_ACC_FILTER || "accFilters");
-        this.setPreviousStatement(true, null);
-        this.setNextStatement(true, null);
-        this.setTooltip(Blockly.Msg.SMARTCAR_IMU_SET_FILTER_TOOLTIP || "Set up the IMU Filter");
-    }
-};
-
-export const smartcar_imu_set_filter_weight = {
-    init: function () {
-        this.setColour(SMARTCAR_HUE);
-        this.appendValueInput("Alpha")
-            .setCheck(Number)
-            .setAlign(Blockly.inputs.Align.RIGHT)
-            .appendField("IMU low pass acc alpha");
-        this.appendValueInput("Beta")
-            .setCheck(Number)
-            .setAlign(Blockly.inputs.Align.RIGHT)
-            .appendField("gyro beta");
-        this.setPreviousStatement(true, null);
-        this.setNextStatement(true, null);
-        this.setTooltip("Set IMU low-pass filter alpha and beta from 0.0 to 1.0");
-    }
-};
-
-export const smartcar_imu_update = {
-    init: function () {
-        this.setColour(SMARTCAR_HUE);
-        this.appendDummyInput()
-            .setAlign(Blockly.inputs.Align.RIGHT)
-            .appendField("update IMU values");
-        this.setPreviousStatement(true, null);
-        this.setNextStatement(true, null);
-        this.setTooltip("Read IMU data and update filtered acceleration plus roll, pitch, and yaw");
-    }
-};
-
-export const smartcar_imu_get_value = {
-    init: function () {
-        this.setColour(SMARTCAR_HUE);
-        this.appendDummyInput()
-            .setAlign(Blockly.inputs.Align.RIGHT)
-            .appendField("IMU value")
-            .appendField(new Blockly.FieldDropdown([
-                ["acc X", "ACC_X"],
-                ["acc Y", "ACC_Y"],
-                ["acc Z", "ACC_Z"],
-                ["gyro X", "GYRO_X"],
-                ["gyro Y", "GYRO_Y"],
-                ["gyro Z", "GYRO_Z"],
-                ["filtered acc X", "FILTERED_ACC_X"],
-                ["filtered acc Y", "FILTERED_ACC_Y"],
-                ["filtered acc Z", "FILTERED_ACC_Z"],
-                ["filtered gyro X", "FILTERED_GYRO_X"],
-                ["filtered gyro Y", "FILTERED_GYRO_Y"],
-                ["filtered gyro Z", "FILTERED_GYRO_Z"]
-            ]), "VALUE");
-        this.setOutput(true, Number);
-        this.setTooltip("Get the latest IMU acceleration or gyroscope value");
-    }
-};
-
-export const smartcar_imu_get_orientation = {
-    init: function () {
-        this.setColour(SMARTCAR_HUE);
-        this.appendDummyInput()
-            .setAlign(Blockly.inputs.Align.RIGHT)
-            .appendField("IMU orientation")
-            .appendField(new Blockly.FieldDropdown([
-                ["roll", "ROLL"],
-                ["pitch", "PITCH"],
-                ["yaw", "YAW"]
-            ]), "VALUE");
-        this.setOutput(true, Number);
-        this.setTooltip("Get the latest roll, pitch, or yaw value in radians");
     }
 };

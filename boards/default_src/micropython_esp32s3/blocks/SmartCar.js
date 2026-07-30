@@ -62,22 +62,6 @@ export const smartcar_stop = {
     }
 };
 
-export const smartcar_set_servo_angle = {
-    init: function () {
-        this.setColour(SMARTCAR_HUE);
-        this.appendDummyInput()
-            .appendField(Blockly.Msg.SMARTCAR_SET_SERVO || "set steering angle");
-        this.appendValueInput("ANGLE")
-            .setCheck(Number)
-            .setAlign(Blockly.inputs.Align.RIGHT)
-            .appendField(Blockly.Msg.SMARTCAR_ANGLE || "angle (45-135)");
-        this.setInputsInline(true);
-        this.setPreviousStatement(true, null);
-        this.setNextStatement(true, null);
-        this.setTooltip(Blockly.Msg.SMARTCAR_SET_SERVO_TOOLTIP || "Set the front servo angle (45-135 degrees, 90=center)");
-    }
-};
-
 export const smartcar_set_speed = {
     init: function () {
         this.setColour(SMARTCAR_HUE);

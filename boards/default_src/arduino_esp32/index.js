@@ -150,7 +150,7 @@ Object.assign(
     ArduinoESP32StorageBlocks,
     ArduinoESP32ToolsBlocks,
     ArduinoESP32SmartCarBlocks
- );
+);
 
 Object.assign(
     Blockly.Arduino.forBlock,

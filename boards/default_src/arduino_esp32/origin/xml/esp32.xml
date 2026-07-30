@@ -3353,13 +3353,6 @@
     <block type="smartcar_rotate_left"></block>
     <block type="smartcar_rotate_right"></block>
     <block type="smartcar_stop"></block>
-    <block type="smartcar_set_servo_angle">
-      <value name="ANGLE">
-        <shadow type="math_number">
-          <field name="NUM">90</field>
-        </shadow>
-      </value>
-    </block>
     <block type="smartcar_set_speed">
       <value name="SPEED">
         <shadow type="math_number">
@@ -3367,12 +3360,15 @@
         </shadow>
       </value>
     </block>
+    <block type="ir_data_updata"></block>
     <block type="smartcar_read_ir_left"></block>
     <block type="smartcar_read_ir_middle"></block>
     <block type="smartcar_read_ir_right"></block>
+    <block type="smartcar_get_track_state"></block>
     <block type="smartcar_get_distance_cm"></block>
     <block type="smartcar_read_rfid_tag"></block>
     <block type="smartcar_has_new_tag"></block>
+    <block type="smartcar_rfid_update"></block>
     <block type="smartcar_play_tone">
       <value name="FREQUENCY">
         <shadow type="math_number">
@@ -3428,21 +3424,4 @@
       </value>
     </block>
     <block type="smartcar_pid_update_loop"></block>
-    <block type="smartcar_imu_init"></block>
-    <block type="smartcar_imu_set_filter"></block>
-    <block type="smartcar_imu_set_filter_weight">
-      <value name="Alpha">
-        <shadow type="math_number">
-          <field name="NUM">0.2</field>
-        </shadow>
-      </value>
-      <value name="Beta">
-        <shadow type="math_number">
-          <field name="NUM">0.8</field>
-        </shadow>
-      </value>
-    </block>
-    <block type="smartcar_imu_update"></block>
-    <block type="smartcar_imu_get_value"></block>
-    <block type="smartcar_imu_get_orientation"></block>
   </category>
