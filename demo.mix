@@ -1,0 +1,153 @@
+<xml version="Mixly 2.0" board="Arduino ESP32@ESP32 Dev Module" xmlns="http://www.w3.org/1999/xhtml">
+  <block type="base_setup" id="setup" x="20" y="20">
+    <statement name="DO">
+      <block type="smartcar_set_pid_gains" id="pid_gains">
+        <value name="KP"><shadow type="math_number" id="kp"><field name="NUM">3</field></shadow></value>
+        <value name="KI"><shadow type="math_number" id="ki"><field name="NUM">0</field></shadow></value>
+        <value name="KD"><shadow type="math_number" id="kd"><field name="NUM">0</field></shadow></value>
+        <next><block type="smartcar_set_target_rpm" id="target_rpm">
+          <value name="TARGET"><shadow type="math_number" id="target"><field name="NUM">300</field></shadow></value>
+        </block></next>
+      </block>
+    </statement>
+  </block>
+  <block type="smartcar_pid_update_loop" id="pid_update" x="20" y="180">
+    <next><block type="ir_data_updata" id="read_ir"><next>
+      <block type="controls_if" id="line_logic"><mutation elseif="6"></mutation>
+        <value name="IF0">
+          <block type="logic_operation" id="if010_outer"><field name="OP">AND</field>
+            <value name="A"><block type="logic_operation" id="if010_inner"><field name="OP">AND</field>
+              <value name="A"><block type="logic_negate" id="if010_not_l"><value name="BOOL"><block type="smartcar_read_ir_left" id="if010_l"></block></value></block></value>
+              <value name="B"><block type="smartcar_read_ir_middle" id="if010_m"></block></value>
+            </block></value>
+            <value name="B"><block type="logic_negate" id="if010_not_r"><value name="BOOL"><block type="smartcar_read_ir_right" id="if010_r"></block></value></block></value>
+          </block>
+        </value>
+        <statement name="DO0"><block type="smartcar_move_forward" id="forward010"></block></statement>
+        <value name="IF1">
+          <block type="logic_operation" id="if110_outer"><field name="OP">AND</field>
+            <value name="A"><block type="logic_operation" id="if110_inner"><field name="OP">AND</field>
+              <value name="A"><block type="smartcar_read_ir_left" id="if110_l"></block></value>
+              <value name="B"><block type="smartcar_read_ir_middle" id="if110_m"></block></value>
+            </block></value>
+            <value name="B"><block type="logic_negate" id="if110_not_r"><value name="BOOL"><block type="smartcar_read_ir_right" id="if110_r"></block></value></block></value>
+          </block>
+        </value>
+        <statement name="DO1">
+          <block type="smartcar_move_forward" id="forward110"><next>
+            <block type="controls_delay" id="delay110"><field name="UNIT">delay</field>
+              <value name="DELAY_TIME"><shadow type="math_number" id="delay110_value"><field name="NUM">600</field></shadow></value>
+              <next><block type="smartcar_rotate_left" id="left110"><next>
+                <block type="do_while" id="wait010_after110"><field name="type">false</field>
+                  <statement name="input_data"><block type="controls_delay" id="poll110"><field name="UNIT">delay</field>
+                    <value name="DELAY_TIME"><shadow type="math_number" id="poll110_value"><field name="NUM">10</field></shadow></value>
+                    <next><block type="ir_data_updata" id="read110"></block></next>
+                  </block></statement>
+                  <value name="select_data"><block type="logic_operation" id="wait110_outer"><field name="OP">AND</field>
+                    <value name="A"><block type="logic_operation" id="wait110_inner"><field name="OP">AND</field>
+                      <value name="A"><block type="smartcar_read_ir_middle" id="wait110_m"></block></value>
+                      <value name="B"><block type="logic_negate" id="wait110_not_l"><value name="BOOL"><block type="smartcar_read_ir_left" id="wait110_l"></block></value></block></value>
+                    </block></value>
+                    <value name="B"><block type="logic_negate" id="wait110_not_r"><value name="BOOL"><block type="smartcar_read_ir_right" id="wait110_r"></block></value></block></value>
+                  </block></value>
+                </block>
+              </next></block></next>
+            </block>
+          </next></block>
+        </statement>
+        <value name="IF2"><block type="logic_operation" id="if111_outer"><field name="OP">AND</field>
+          <value name="A"><block type="logic_operation" id="if111_inner"><field name="OP">AND</field>
+            <value name="A"><block type="smartcar_read_ir_left" id="if111_l"></block></value>
+            <value name="B"><block type="smartcar_read_ir_middle" id="if111_m"></block></value>
+          </block></value>
+          <value name="B"><block type="smartcar_read_ir_right" id="if111_r"></block></value>
+        </block></value>
+        <statement name="DO2"><block type="smartcar_stop" id="stop111"></block></statement>
+        <value name="IF3"><block type="logic_operation" id="if101_outer"><field name="OP">AND</field>
+          <value name="A"><block type="logic_operation" id="if101_inner"><field name="OP">AND</field>
+            <value name="A"><block type="smartcar_read_ir_left" id="if101_l"></block></value>
+            <value name="B"><block type="logic_negate" id="if101_not_m"><value name="BOOL"><block type="smartcar_read_ir_middle" id="if101_m"></block></value></block></value>
+          </block></value>
+          <value name="B"><block type="smartcar_read_ir_right" id="if101_r"></block></value>
+        </block></value>
+        <statement name="DO3"><block type="smartcar_stop" id="stop101"></block></statement>
+        <value name="IF4"><block type="logic_operation" id="if011_outer"><field name="OP">AND</field>
+          <value name="A"><block type="logic_operation" id="if011_inner"><field name="OP">AND</field>
+            <value name="A"><block type="logic_negate" id="if011_not_l"><value name="BOOL"><block type="smartcar_read_ir_left" id="if011_l"></block></value></block></value>
+            <value name="B"><block type="smartcar_read_ir_middle" id="if011_m"></block></value>
+          </block></value>
+          <value name="B"><block type="smartcar_read_ir_right" id="if011_r"></block></value>
+        </block></value>
+        <statement name="DO4">
+          <block type="smartcar_move_forward" id="forward011"><next>
+            <block type="controls_delay" id="delay011"><field name="UNIT">delay</field>
+              <value name="DELAY_TIME"><shadow type="math_number" id="delay011_value"><field name="NUM">600</field></shadow></value>
+              <next><block type="smartcar_rotate_right" id="right011"><next>
+                <block type="do_while" id="wait010_after011"><field name="type">false</field>
+                  <statement name="input_data"><block type="controls_delay" id="poll011"><field name="UNIT">delay</field>
+                    <value name="DELAY_TIME"><shadow type="math_number" id="poll011_value"><field name="NUM">10</field></shadow></value>
+                    <next><block type="ir_data_updata" id="read011"></block></next>
+                  </block></statement>
+                  <value name="select_data"><block type="logic_operation" id="wait011_outer"><field name="OP">AND</field>
+                    <value name="A"><block type="logic_operation" id="wait011_inner"><field name="OP">AND</field>
+                      <value name="A"><block type="smartcar_read_ir_middle" id="wait011_m"></block></value>
+                      <value name="B"><block type="logic_negate" id="wait011_not_l"><value name="BOOL"><block type="smartcar_read_ir_left" id="wait011_l"></block></value></block></value>
+                    </block></value>
+                    <value name="B"><block type="logic_negate" id="wait011_not_r"><value name="BOOL"><block type="smartcar_read_ir_right" id="wait011_r"></block></value></block></value>
+                  </block></value>
+                </block>
+              </next></block></next>
+            </block>
+          </next></block>
+        </statement>
+        <value name="IF5"><block type="logic_operation" id="if001_outer"><field name="OP">AND</field>
+          <value name="A"><block type="logic_operation" id="if001_inner"><field name="OP">AND</field>
+            <value name="A"><block type="logic_negate" id="if001_not_l"><value name="BOOL"><block type="smartcar_read_ir_left" id="if001_l"></block></value></block></value>
+            <value name="B"><block type="logic_negate" id="if001_not_m"><value name="BOOL"><block type="smartcar_read_ir_middle" id="if001_m"></block></value></block></value>
+          </block></value>
+          <value name="B"><block type="smartcar_read_ir_right" id="if001_r"></block></value>
+        </block></value>
+        <statement name="DO5"><block type="smartcar_rotate_right" id="right001"><next>
+          <block type="do_while" id="wait010_after001"><field name="type">false</field>
+            <statement name="input_data"><block type="controls_delay" id="poll001"><field name="UNIT">delay</field>
+              <value name="DELAY_TIME"><shadow type="math_number" id="poll001_value"><field name="NUM">10</field></shadow></value>
+              <next><block type="ir_data_updata" id="read001"></block></next>
+            </block></statement>
+            <value name="select_data"><block type="logic_operation" id="wait001_outer"><field name="OP">AND</field>
+              <value name="A"><block type="logic_operation" id="wait001_inner"><field name="OP">AND</field>
+                <value name="A"><block type="smartcar_read_ir_middle" id="wait001_m"></block></value>
+                <value name="B"><block type="logic_negate" id="wait001_not_l"><value name="BOOL"><block type="smartcar_read_ir_left" id="wait001_l"></block></value></block></value>
+              </block></value>
+              <value name="B"><block type="logic_negate" id="wait001_not_r"><value name="BOOL"><block type="smartcar_read_ir_right" id="wait001_r"></block></value></block></value>
+            </block></value>
+          </block>
+        </next></block></statement>
+        <value name="IF6"><block type="logic_operation" id="if100_outer"><field name="OP">AND</field>
+          <value name="A"><block type="logic_operation" id="if100_inner"><field name="OP">AND</field>
+            <value name="A"><block type="smartcar_read_ir_left" id="if100_l"></block></value>
+            <value name="B"><block type="logic_negate" id="if100_not_m"><value name="BOOL"><block type="smartcar_read_ir_middle" id="if100_m"></block></value></block></value>
+          </block></value>
+          <value name="B"><block type="logic_negate" id="if100_not_r"><value name="BOOL"><block type="smartcar_read_ir_right" id="if100_r"></block></value></block></value>
+        </block></value>
+        <statement name="DO6"><block type="smartcar_rotate_left" id="left100"><next>
+          <block type="do_while" id="wait010_after100"><field name="type">false</field>
+            <statement name="input_data"><block type="controls_delay" id="poll100"><field name="UNIT">delay</field>
+              <value name="DELAY_TIME"><shadow type="math_number" id="poll100_value"><field name="NUM">10</field></shadow></value>
+              <next><block type="ir_data_updata" id="read100"></block></next>
+            </block></statement>
+            <value name="select_data"><block type="logic_operation" id="wait100_outer"><field name="OP">AND</field>
+              <value name="A"><block type="logic_operation" id="wait100_inner"><field name="OP">AND</field>
+                <value name="A"><block type="smartcar_read_ir_middle" id="wait100_m"></block></value>
+                <value name="B"><block type="logic_negate" id="wait100_not_l"><value name="BOOL"><block type="smartcar_read_ir_left" id="wait100_l"></block></value></block></value>
+              </block></value>
+              <value name="B"><block type="logic_negate" id="wait100_not_r"><value name="BOOL"><block type="smartcar_read_ir_right" id="wait100_r"></block></value></block></value>
+            </block></value>
+          </block>
+        </next></block></statement>
+        <next><block type="controls_delay" id="loop_delay"><field name="UNIT">delay</field>
+          <value name="DELAY_TIME"><shadow type="math_number" id="loop_delay_value"><field name="NUM">10</field></shadow></value>
+        </block></next>
+      </block>
+    </next></block></next>
+  </block>
+</xml>

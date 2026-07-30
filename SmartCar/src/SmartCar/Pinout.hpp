@@ -12,9 +12,9 @@ namespace Pinout {
     const uint8_t Buzzer = 2;
 
     // IR (Infra-red) Sensors
-    const uint8_t IRLeft = 7;
+    const uint8_t IRLeft = 5;
     const uint8_t IRMiddle = 6;
-    const uint8_t IRRight = 5;
+    const uint8_t IRRight = 7;
 
     // Ultrasonic Sensor 
     const uint8_t UltrasonicTrigPin = 38;

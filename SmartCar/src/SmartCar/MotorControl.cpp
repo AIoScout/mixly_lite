@@ -160,7 +160,7 @@ namespace Encoder {
       Counter.previousMillis = currentMillis;
 
       // Print RPM
-      Serial.println(Counter.rpm);
+      // Serial.println(Counter.rpm);
     }
   }
 }

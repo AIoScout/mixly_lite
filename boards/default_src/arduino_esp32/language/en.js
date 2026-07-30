@@ -169,11 +169,6 @@ En.SMARTCAR_GET_LEFT_RPM = 'left wheel RPM';
 En.SMARTCAR_GET_RIGHT_RPM = 'right wheel RPM';
 En.SMARTCAR_SET_TARGET_RPM = 'set target RPM';
 
-// IMU
-En.IMU_INIT = 'IMU init';
-En.IMU_SET_GYRO_FILTER = 'gyro filter';
-En.IMU_SET_ACC_FILTER = 'accelerometer filter';
-
 // Tooltips
 En.SMARTCAR_MOVE_FORWARD_TOOLTIP = 'Make the car move forward';
 En.SMARTCAR_MOVE_BACKWARD_TOOLTIP = 'Make the car move backward';
