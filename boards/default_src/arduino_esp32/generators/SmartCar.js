@@ -264,16 +264,3 @@ export const smartcar_set_target_rpm = function (_, generator) {
     code += 'RightWheelPID.target_val = ' + target + ';\n';
     return code;
 };
-
-export const smartcar_pid_update_loop = function (_, generator) {
-    smartcarAddPIDDefinitions(generator);
-    generator.setups_['smartcar_init_motors'] = 'MotorControl::DCMotorControl::Init();';
-    generator.setups_['smartcar_init_encoder'] = 'Encoder::Init();';
-
-    var code = 'Encoder::RPMCounterFromEncoder(LeftWheelRPM);\n';
-    code += 'Encoder::RPMCounterFromEncoder(RightWheelRPM);\n';
-    code += 'MotorControl::LeftWheel.Speed = constrain((int)LeftWheelPID.PID_realize(LeftWheelRPM.rpm), 0, 4095);\n';
-    code += 'MotorControl::RightWheel.Speed = constrain((int)RightWheelPID.PID_realize(RightWheelRPM.rpm), 0, 4095);\n';
-
-    return code;
-};
