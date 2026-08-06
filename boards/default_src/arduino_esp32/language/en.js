@@ -161,13 +161,14 @@ En.SMARTCAR_LIGHT_ID = 'ID';
 En.SMARTCAR_STATE = 'state';
 En.SMARTCAR_GET_TIME_REMAIN = 'time remain';
 En.SMARTCAR_TIME_REMAIN = 'time remaining';
-En.SMARTCAR_TARGET = 'target';
+En.SMARTCAR_TARGET = 'RPM';
 
 // PID Control
 En.SMARTCAR_SET_PID = 'set PID gains';
 En.SMARTCAR_GET_LEFT_RPM = 'left wheel RPM';
 En.SMARTCAR_GET_RIGHT_RPM = 'right wheel RPM';
 En.SMARTCAR_SET_TARGET_RPM = 'set target RPM';
+En.SMARTCAR_PID_UPDATE_LOOP = 'PID update loop';
 
 // Tooltips
 En.SMARTCAR_MOVE_FORWARD_TOOLTIP = 'Make the car move forward';
@@ -194,4 +195,5 @@ En.SMARTCAR_SET_PID_TOOLTIP = 'Set PID controller gains for both wheels';
 En.SMARTCAR_GET_LEFT_RPM_TOOLTIP = 'Get current RPM of left wheel';
 En.SMARTCAR_GET_RIGHT_RPM_TOOLTIP = 'Get current RPM of right wheel';
 En.SMARTCAR_SET_TARGET_RPM_TOOLTIP = 'Set target RPM for both wheels';
+En.SMARTCAR_PID_UPDATE_LOOP_TOOLTIP = 'Update encoder RPM and apply PID output to both wheel speeds';
 export default En;
