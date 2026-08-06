@@ -6952,13 +6952,6 @@
       <block type="smartcar_rotate_left"></block>
       <block type="smartcar_rotate_right"></block>
       <block type="smartcar_stop"></block>
-      <block type="smartcar_set_servo_angle">
-        <value name="ANGLE">
-          <shadow type="math_number">
-            <field name="NUM">90</field>
-          </shadow>
-        </value>
-      </block>
       <block type="smartcar_set_speed">
         <value name="SPEED">
           <shadow type="math_number">

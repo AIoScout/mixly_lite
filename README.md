@@ -20,7 +20,7 @@ This fork adds custom block modules for the **ESP32 IoT Smart Car** project, sup
 | Category | Blocks | Description |
 |----------|--------|-------------|
 | **Motors** | move_forward, move_backward, rotate_left, rotate_right, stop | Motor control |
-| **Motors** | set_servo_angle, set_speed | Servo and speed control |
+| **Motors** | set_speed | Motor speed control |
 | **IR Sensors** | read_ir_left, read_ir_middle, read_ir_right | IR sensor reading |
 | **IR Sensors** | get_track_state | Get line-tracking state |
 | **Ultrasonic** | get_distance_cm | Ultrasonic distance measurement |
@@ -95,7 +95,7 @@ mixly_lite/
 │   ├── src/
 │   │   ├── SmartCar.h                 # Discovery header (includes all modules)
 │   │   └── SmartCar/
-│   │       ├── MotorControl.hpp/cpp   # DC motor & servo control
+│   │       ├── MotorControl.hpp/cpp   # DC motor control
 │   │       ├── Movement.hpp/cpp       # High-level movement commands
 │   │       ├── IRSensors.hpp/cpp      # IR sensor reading & state detection
 │   │       ├── UltrasonicSensor.hpp/cpp

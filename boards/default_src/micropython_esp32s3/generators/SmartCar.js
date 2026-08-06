@@ -33,14 +33,6 @@ export const smartcar_stop = function (_, generator) {
     return 'Movement.stop()\n';
 }
 
-export const smartcar_set_servo_angle = function (_, generator) {
-    generator.definitions_['import_smartcar_movement'] = 'from smartcar import Movement';
-    generator.definitions_['import_machine'] = 'from machine import PWM';
-    var angle = generator.valueToCode(this, 'ANGLE', generator.ORDER_ATOMIC);
-    generator.definitions_['smartcar_init_servo'] = 'Movement.init_servo()';
-    return 'Movement.set_servo_angle(' + angle + ')\n';
-}
-
 export const smartcar_set_speed = function (_, generator) {
     generator.definitions_['import_smartcar_movement'] = 'from smartcar import Movement';
     var speed = generator.valueToCode(this, 'SPEED', generator.ORDER_ATOMIC);

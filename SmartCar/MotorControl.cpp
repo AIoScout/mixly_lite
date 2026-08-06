@@ -8,7 +8,6 @@
 namespace MotorControl {
   DCMotor LeftWheel;
   DCMotor RightWheel;
-  ServoMotor FrontWheel;
 }
 
 void MotorControl::DCMotorControl::Init()
@@ -64,31 +63,6 @@ void MotorControl::DCMotorControl::Stop(MotorControl::DCMotor& Motor)
 {
   ledcWriteChannel(Motor.PWMChannelIN1, 4096);
   ledcWriteChannel(Motor.PWMChannelIN2, 4096);
-};
-
-void MotorControl::ServoMotorControl::Init()
-{
-  // Setup PWM channel for Servo Motor (Front Wheel)
-  ledcAttachChannel(Pinout::ServoPin,
-                    FrontWheel.PWMFrequency,
-                    FrontWheel.PWMResolution,
-                    FrontWheel.PWMChannel);
-  // Set all the PWM Channels' Dutycycle to 0
-  ledcWriteChannel(FrontWheel.PWMChannel, 0);
-};
-
-/*For SG90 Servo Motor
-PWM         --> 50Hz  (20ms)
-Dutycycle   --> 1-2ms (5-10%)*/
-void MotorControl::ServoMotorControl::TurnDeg(MotorControl::ServoMotor& Motor)
-{
-  Motor.PWMDuty = (float(Motor.TargetAngle) / 90.0f) * 51.2f + 25.0f;
-  ledcWriteChannel(Motor.PWMChannel, Motor.PWMDuty);
-  /*For Debug*/
-  // Serial.print("Servo Degree: ");
-  // Serial.println(Degree);
-  // Serial.print("Dutycycle: ");
-  // Serial.println(Dutycycle);
 };
 
 /*Init the Enocoder related Variables before the task starts*/

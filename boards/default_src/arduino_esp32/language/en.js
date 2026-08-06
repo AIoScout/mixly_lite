@@ -130,12 +130,11 @@ En.SMARTCAR_MOVE_BACKWARD = 'move backward';
 En.SMARTCAR_ROTATE_LEFT = 'rotate left';
 En.SMARTCAR_ROTATE_RIGHT = 'rotate right';
 En.SMARTCAR_STOP = 'stop';
-En.SMARTCAR_SET_SERVO = 'set steering angle';
-En.SMARTCAR_ANGLE = 'angle (45-135)';
 En.SMARTCAR_SET_SPEED = 'set motor speed';
 En.SMARTCAR_SPEED = 'speed (0-4095)';
 
 // IR Sensors
+En.SMARTCAR_IR_DATA_UPDATA = 'IR data update';
 En.SMARTCAR_READ_IR_LEFT = 'IR left sensor';
 En.SMARTCAR_READ_IR_MIDDLE = 'IR middle sensor';
 En.SMARTCAR_READ_IR_RIGHT = 'IR right sensor';
@@ -147,6 +146,7 @@ En.SMARTCAR_GET_DISTANCE = 'distance (cm)';
 // RFID
 En.SMARTCAR_READ_RFID = 'RFID tag UID';
 En.SMARTCAR_HAS_NEW_TAG = 'has new RFID tag';
+En.SMARTCAR_RFID_UPDATE = 'RFID update';
 
 // Buzzer
 En.SMARTCAR_PLAY_TONE = 'play tone';
@@ -169,19 +169,14 @@ En.SMARTCAR_GET_LEFT_RPM = 'left wheel RPM';
 En.SMARTCAR_GET_RIGHT_RPM = 'right wheel RPM';
 En.SMARTCAR_SET_TARGET_RPM = 'set target RPM';
 
-// IMU
-En.IMU_INIT = 'IMU init';
-En.IMU_SET_GYRO_FILTER = 'gyro filter';
-En.IMU_SET_ACC_FILTER = 'accelerometer filter';
-
 // Tooltips
 En.SMARTCAR_MOVE_FORWARD_TOOLTIP = 'Make the car move forward';
 En.SMARTCAR_MOVE_BACKWARD_TOOLTIP = 'Make the car move backward';
 En.SMARTCAR_ROTATE_LEFT_TOOLTIP = 'Rotate the car left (counter-clockwise)';
 En.SMARTCAR_ROTATE_RIGHT_TOOLTIP = 'Rotate the car right (clockwise)';
 En.SMARTCAR_STOP_TOOLTIP = 'Stop all motors';
-En.SMARTCAR_SET_SERVO_TOOLTIP = 'Set the front servo angle (45-135 degrees, 90=center)';
 En.SMARTCAR_SET_SPEED_TOOLTIP = 'Set the speed for both motors (0-4095 PWM duty cycle)';
+En.SMARTCAR_IR_DATA_UPDATA_TOOLTIP = 'Read IR sensors and update the cached IR data';
 En.SMARTCAR_READ_IR_LEFT_TOOLTIP = 'Read left IR sensor (true = black line detected)';
 En.SMARTCAR_READ_IR_MIDDLE_TOOLTIP = 'Read middle IR sensor (true = black line detected)';
 En.SMARTCAR_READ_IR_RIGHT_TOOLTIP = 'Read right IR sensor (true = black line detected)';
@@ -189,6 +184,7 @@ En.SMARTCAR_GET_TRACK_STATE_TOOLTIP = 'Get current track state (0-7)';
 En.SMARTCAR_GET_DISTANCE_TOOLTIP = 'Get distance from ultrasonic sensor in centimeters';
 En.SMARTCAR_READ_RFID_TOOLTIP = 'Read the current RFID tag UID';
 En.SMARTCAR_HAS_NEW_TAG_TOOLTIP = 'Check if a new RFID tag is present';
+En.SMARTCAR_RFID_UPDATE_TOOLTIP = 'Read the RFID card serial data and Returns true if a UID could be read';
 En.SMARTCAR_PLAY_TONE_TOOLTIP = 'Play a tone on the buzzer';
 En.SMARTCAR_BUZZER_STOP_TOOLTIP = 'Stop the buzzer';
 En.SMARTCAR_IS_EXAM_ACTIVATED_TOOLTIP = 'Check if the exam is currently activated';
@@ -198,7 +194,4 @@ En.SMARTCAR_SET_PID_TOOLTIP = 'Set PID controller gains for both wheels';
 En.SMARTCAR_GET_LEFT_RPM_TOOLTIP = 'Get current RPM of left wheel';
 En.SMARTCAR_GET_RIGHT_RPM_TOOLTIP = 'Get current RPM of right wheel';
 En.SMARTCAR_SET_TARGET_RPM_TOOLTIP = 'Set target RPM for both wheels';
-En.SMARTCAR_IMU_INIT_TOOLTIP = 'Initialize the IMU sensor';
-En.SMARTCAR_IMU_SET_FILTER_TOOLTIP = 'Set the IMU gyro and accelerometer filter values';
-
 export default En;
