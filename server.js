@@ -9,6 +9,7 @@ const WebSocketServer = require('ws').Server;
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const yaml = require('js-yaml');
 const { execFile } = require('child_process');
 const { SerialPort } = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline');
@@ -21,6 +22,59 @@ const PROJECT_ROOT = path.resolve(__dirname);
 const SKETCH_DIR = path.join(PROJECT_ROOT, 'sketch_build');
 const SMARTCAR_LIB = path.join(PROJECT_ROOT, 'SmartCar');
 const LIBRARIES_DIR = path.join(PROJECT_ROOT, 'libraries');
+
+// Per-board default options loaded from board-config.yaml (see that file for
+// details). Reloaded automatically on file change — no restart required.
+const BOARD_CONFIG_PATH = path.join(PROJECT_ROOT, 'board-config.yaml');
+let BOARD_DEFAULTS = {};
+
+function loadBoardDefaults() {
+    try {
+        const parsed = yaml.load(fs.readFileSync(BOARD_CONFIG_PATH, 'utf8')) || {};
+        const normalized = {};
+        for (const [board, opts] of Object.entries(parsed)) {
+            if (opts && typeof opts === 'object') {
+                normalized[board] = {};
+                for (const [k, v] of Object.entries(opts)) normalized[board][k] = String(v);
+            }
+        }
+        BOARD_DEFAULTS = normalized;
+        const summary = Object.keys(BOARD_DEFAULTS)
+            .map(b => `${b}={${Object.entries(BOARD_DEFAULTS[b]).map(([k, v]) => `${k}=${v}`).join(',')}}`)
+            .join('  ');
+        console.log(`[config] loaded board-config.yaml — ${summary}`);
+    } catch (e) {
+        if (e.code === 'ENOENT') {
+            console.warn(`[config] board-config.yaml not found at ${BOARD_CONFIG_PATH}`);
+        } else {
+            // Keep the previous (last-good) defaults on parse error.
+            console.error(`[config] failed to parse board-config.yaml (keeping previous defaults): ${e.message}`);
+        }
+    }
+}
+loadBoardDefaults();
+
+// Hot-reload: pick up edits to board-config.yaml without restarting the server.
+let configReloadTimer = null;
+try {
+    fs.watch(BOARD_CONFIG_PATH, () => {
+        // Editors emit several events per save; debounce them.
+        if (configReloadTimer) clearTimeout(configReloadTimer);
+        configReloadTimer = setTimeout(loadBoardDefaults, 300);
+    });
+} catch (e) {
+    if (e.code !== 'ENOENT') console.warn('[config] could not watch board-config.yaml:', e.message);
+}
+
+// Append default options to a bare FQBN. If the FQBN already carries options
+// (user/IDE override), it is returned unchanged.
+function applyBoardDefaults(boardType) {
+    if (!boardType || boardType.includes('=')) return boardType;
+    const defaults = BOARD_DEFAULTS[boardType];
+    if (!defaults) return boardType;
+    const opts = Object.entries(defaults).map(([k, v]) => `${k}=${v}`).join(',');
+    return `${boardType}:${opts}`;
+}
 
 // ── MIME types ─────────────────────────────────────────────────
 const MIME = {
@@ -137,7 +191,7 @@ function handleCompile(ws, args) {
     ensureDir(buildPath);
 
     runArduinoCLI(ws, [
-        'compile', '-b', boardType,
+        'compile', '-b', applyBoardDefaults(boardType),
         '--build-path', buildPath, '--libraries', LIBRARIES_DIR,
         '--verbose', sketchPath, '--no-color'
     ], layerNum, 'compile');
@@ -159,7 +213,7 @@ function handleUpload(ws, args) {
     ensureDir(buildPath);
 
     runArduinoCLI(ws, [
-        'compile', '-b', boardType,
+        'compile', '-b', applyBoardDefaults(boardType),
         '--build-path', buildPath, '--libraries', LIBRARIES_DIR,
         '--upload', '-p', port,
         '--verbose', sketchPath, '--no-color'
