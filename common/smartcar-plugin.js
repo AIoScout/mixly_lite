@@ -11,6 +11,12 @@
     let portPollTimer = null;
     let portSelectRetries = 0;
 
+    // Persist the user's port choice so it survives upload-time re-enumeration
+    // (the ESP32 briefly vanishes during upload) and browser restarts.
+    const PREF_PORT = 'smartcar:selectedPort';
+    function prefGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+    function prefSet(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
+
     // ── WebSocket ────────────────────────────────────────────
     function connectWS() {
         ws = new WebSocket(WS_URL);
@@ -105,6 +111,9 @@
             const type = args[0];
             const msg = type === 'compile' ? 'Compile succeeded' : 'Upload succeeded';
             output('\n==' + msg + '==\n');
+            // After upload the board resets and the port re-enumerates; refresh
+            // promptly so the saved port selection is restored right away.
+            if (type === 'upload') refreshRealPorts();
         } else if (func === 'operateEndError') {
             hideLoader();
             const type = args[0];
@@ -173,6 +182,16 @@
             return;
         }
         portSelectRetries = 0;
+
+        // Remember the user's choice when they pick a port (user action only, not
+        // the programmatic restore below, so the saved choice isn't overwritten).
+        if (!select._smartcarPrefBound) {
+            select._smartcarPrefBound = true;
+            $(select).on('select2:select', () => {
+                prefSet(PREF_PORT, getSelectedPort() || '');
+            });
+        }
+
         const prev = select.value;
         // Clear and repopulate with real ports
         select.innerHTML = '<option value="">Select Port</option>';
@@ -183,10 +202,12 @@
             opt.textContent = label;
             select.appendChild(opt);
         }
-        // Restore previous selection if still available
-        if (prev && realPorts.some(p => p.path === prev)) {
-            select.value = prev;
-        }
+        // Restore selection: prefer the persisted port, fall back to the transient
+        // value. This re-selects the port automatically after it briefly vanishes
+        // during upload (board reset) and reappears on the next refresh.
+        const saved = prefGet(PREF_PORT);
+        const want = [saved, prev].find(v => v && realPorts.some(p => p.path === v)) || '';
+        if (want) select.value = want;
         // Trigger select2 to re-render
         try { $(select).trigger('change'); } catch(e) {}
     }
