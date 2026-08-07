@@ -1,0 +1,31 @@
+# =============================================================================
+# SmartCar — per-board compile/upload default options
+# =============================================================================
+# These options are appended to the board FQBN passed to arduino-cli whenever
+# the incoming FQBN carries no options of its own (i.e. the bare FQBN sent by
+# the UI). If a FQBN already carries options, this file is ignored for that
+# build — so a user/IDE override always wins.
+#
+# Format:
+#   "<package:arch:board>":
+#     OptionKey: "value"
+#
+# Only UploadSpeed is pinned here on purpose: arduino-cli already has correct
+# per-board defaults for flash size, partition scheme, CPU frequency, etc., and
+# overriding those risks flash/partition mismatches that break the build.
+# UploadSpeed is set to 115200 because arduino-cli's default 921600 is flaky on
+# cheap USB-serial adapters.
+#
+# To list every available option key + value for a board, run:
+#   arduino-cli board details -b esp32:esp32:esp32
+#
+# Edits to this file are picked up automatically — no server restart needed.
+
+"esp32:esp32:esp32":
+  UploadSpeed: "115200"
+
+"esp32:esp32:esp32s3":
+  UploadSpeed: "115200"
+
+"esp32:esp32:esp32p4":
+  UploadSpeed: "115200"

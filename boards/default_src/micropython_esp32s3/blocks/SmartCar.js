@@ -230,7 +230,7 @@ export const smartcar_get_time_remain = {
     init: function () {
         this.setColour(SMARTCAR_HUE);
         this.appendDummyInput()
-            .appendField(Blockly.Msg.SMARTCAR_GET_TIME_REMAIN || "traffic light");
+            .appendField(Blockly.Msg.SMARTCAR_GET_TRAFFIC_LIGHT || "traffic light");
         this.appendValueInput("LIGHT_ID")
             .setCheck(Number)
             .setAlign(Blockly.inputs.Align.RIGHT)

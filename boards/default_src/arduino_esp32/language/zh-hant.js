@@ -120,4 +120,81 @@ ZhHant.ESP32_CONFIG_MESSAGE_USB_MODE = XML.render(ZhHant.ESP32_CONFIG_TEMPLATE, 
 
 ZhHant.BOARD_FS = '闆卡文件管理';
 
+// ============================================
+// SmartCar Block Translations
+// ============================================
+
+// Motors
+ZhHant.SMARTCAR_MOVE_FORWARD = '前進';
+ZhHant.SMARTCAR_MOVE_BACKWARD = '後退';
+ZhHant.SMARTCAR_ROTATE_LEFT = '左轉';
+ZhHant.SMARTCAR_ROTATE_RIGHT = '右轉';
+ZhHant.SMARTCAR_STOP = '停止';
+ZhHant.SMARTCAR_SET_SPEED = '設置馬達速度';
+ZhHant.SMARTCAR_SPEED = '速度 (0-4095)';
+
+// IR Sensors
+ZhHant.SMARTCAR_IR_DATA_UPDATA = '紅外線數據更新';
+ZhHant.SMARTCAR_READ_IR_LEFT = '左側紅外線感測器';
+ZhHant.SMARTCAR_READ_IR_MIDDLE = '中間紅外線感測器';
+ZhHant.SMARTCAR_READ_IR_RIGHT = '右側紅外線感測器';
+ZhHant.SMARTCAR_GET_TRACK_STATE = '循跡狀態';
+
+// Ultrasonic
+ZhHant.SMARTCAR_GET_DISTANCE = '距離 (公分)';
+
+// RFID
+ZhHant.SMARTCAR_READ_RFID = 'RFID 標籤 UID';
+ZhHant.SMARTCAR_HAS_NEW_TAG = '有新 RFID 標籤';
+ZhHant.SMARTCAR_RFID_UPDATE = 'RFID 更新';
+
+// Buzzer
+ZhHant.SMARTCAR_PLAY_TONE = '播放音調';
+ZhHant.SMARTCAR_FREQUENCY = '頻率 (Hz)';
+ZhHant.SMARTCAR_DURATION = '持續時間 (毫秒)';
+ZhHant.SMARTCAR_BUZZER_STOP = '停止蜂鳴器';
+
+// Firebase
+ZhHant.SMARTCAR_IS_EXAM_ACTIVATED = '考試已啟用';
+ZhHant.SMARTCAR_GET_TRAFFIC_LIGHT = '紅綠燈';
+ZhHant.SMARTCAR_LIGHT_ID = '編號';
+ZhHant.SMARTCAR_STATE = '狀態';
+ZhHant.SMARTCAR_GET_TIME_REMAIN = '剩餘時間';
+ZhHant.SMARTCAR_TIME_REMAIN = '剩餘時間';
+ZhHant.SMARTCAR_TARGET = 'RPM';
+
+// PID Control
+ZhHant.SMARTCAR_SET_PID = '設置 PID 參數';
+ZhHant.SMARTCAR_GET_LEFT_RPM = '左輪轉速 (RPM)';
+ZhHant.SMARTCAR_GET_RIGHT_RPM = '右輪轉速 (RPM)';
+ZhHant.SMARTCAR_SET_TARGET_RPM = '設置目標轉速';
+ZhHant.SMARTCAR_PID_UPDATE_LOOP = 'PID 更新迴圈';
+
+// Tooltips
+ZhHant.SMARTCAR_MOVE_FORWARD_TOOLTIP = '讓小車前進';
+ZhHant.SMARTCAR_MOVE_BACKWARD_TOOLTIP = '讓小車後退';
+ZhHant.SMARTCAR_ROTATE_LEFT_TOOLTIP = '使小車左轉（逆時針）';
+ZhHant.SMARTCAR_ROTATE_RIGHT_TOOLTIP = '使小車右轉（順時針）';
+ZhHant.SMARTCAR_STOP_TOOLTIP = '停止所有馬達';
+ZhHant.SMARTCAR_SET_SPEED_TOOLTIP = '設置兩個馬達的速度（0-4095 PWM 佔空比）';
+ZhHant.SMARTCAR_IR_DATA_UPDATA_TOOLTIP = '讀取紅外線感測器並更新快取的紅外線數據';
+ZhHant.SMARTCAR_READ_IR_LEFT_TOOLTIP = '讀取左側紅外線感測器（true = 偵測到黑線）';
+ZhHant.SMARTCAR_READ_IR_MIDDLE_TOOLTIP = '讀取中間紅外線感測器（true = 偵測到黑線）';
+ZhHant.SMARTCAR_READ_IR_RIGHT_TOOLTIP = '讀取右側紅外線感測器（true = 偵測到黑線）';
+ZhHant.SMARTCAR_GET_TRACK_STATE_TOOLTIP = '取得目前循跡狀態（0-7）';
+ZhHant.SMARTCAR_GET_DISTANCE_TOOLTIP = '取得超音波感測器測得的距離（公分）';
+ZhHant.SMARTCAR_READ_RFID_TOOLTIP = '讀取目前 RFID 標籤 UID';
+ZhHant.SMARTCAR_HAS_NEW_TAG_TOOLTIP = '檢查是否有新的 RFID 標籤';
+ZhHant.SMARTCAR_RFID_UPDATE_TOOLTIP = '讀取 RFID 卡序列數據，成功讀取到 UID 時回傳 true';
+ZhHant.SMARTCAR_PLAY_TONE_TOOLTIP = '在蜂鳴器上播放音調';
+ZhHant.SMARTCAR_BUZZER_STOP_TOOLTIP = '停止蜂鳴器';
+ZhHant.SMARTCAR_IS_EXAM_ACTIVATED_TOOLTIP = '檢查考試是否已啟用';
+ZhHant.SMARTCAR_GET_TRAFFIC_LIGHT_TOOLTIP = '取得紅綠燈狀態（RED、YELLOW、GREEN）';
+ZhHant.SMARTCAR_GET_TIME_REMAIN_TOOLTIP = '取得紅綠燈的剩餘時間';
+ZhHant.SMARTCAR_SET_PID_TOOLTIP = '為兩個輪子設置 PID 控制器參數';
+ZhHant.SMARTCAR_GET_LEFT_RPM_TOOLTIP = '取得左輪目前轉速 (RPM)';
+ZhHant.SMARTCAR_GET_RIGHT_RPM_TOOLTIP = '取得右輪目前轉速 (RPM)';
+ZhHant.SMARTCAR_SET_TARGET_RPM_TOOLTIP = '為兩個輪子設置目標轉速';
+ZhHant.SMARTCAR_PID_UPDATE_LOOP_TOOLTIP = '更新編碼器轉速並將 PID 輸出應用到兩個輪子的速度';
+
 export default ZhHant;

@@ -251,7 +251,7 @@ export const smartcar_get_time_remain = {
     init: function () {
         this.setColour(SMARTCAR_HUE);
         this.appendDummyInput()
-            .appendField(Blockly.Msg.SMARTCAR_GET_TIME_REMAIN || "traffic light");
+            .appendField(Blockly.Msg.SMARTCAR_GET_TRAFFIC_LIGHT || "traffic light");
         this.appendValueInput("LIGHT_ID")
             .setCheck(Number)
             .setAlign(Blockly.inputs.Align.RIGHT)
@@ -332,9 +332,9 @@ export const smartcar_pid_update_loop = {
     init: function () {
         this.setColour(SMARTCAR_HUE);
         this.appendDummyInput()
-            .appendField("PID update loop");
+            .appendField(Blockly.Msg.SMARTCAR_PID_UPDATE_LOOP || "PID update loop");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setTooltip("Update encoder RPM and apply PID output to both wheel speeds");
+        this.setTooltip(Blockly.Msg.SMARTCAR_PID_UPDATE_LOOP_TOOLTIP || "Update encoder RPM and apply PID output to both wheel speeds");
     }
 };

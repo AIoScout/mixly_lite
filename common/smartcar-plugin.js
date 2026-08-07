@@ -8,6 +8,14 @@
     let ws = null;
     let connected = false;
     const pendingMessages = [];
+    let portPollTimer = null;
+    let portSelectRetries = 0;
+
+    // Persist the user's port choice so it survives upload-time re-enumeration
+    // (the ESP32 briefly vanishes during upload) and browser restarts.
+    const PREF_PORT = 'smartcar:selectedPort';
+    function prefGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
+    function prefSet(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
 
     // ── WebSocket ────────────────────────────────────────────
     function connectWS() {
@@ -15,11 +23,14 @@
         ws.onopen = () => {
             console.log('[SmartCar] WebSocket connected');
             connected = true;
-            updateStatus('Connected', true);
+            updateStatus('connected');
             while (pendingMessages.length > 0) {
                 ws.send(pendingMessages.shift());
             }
             refreshRealPorts();
+            // Keep the port list live so hot-plugged boards appear without a manual refresh.
+            if (portPollTimer) clearInterval(portPollTimer);
+            portPollTimer = setInterval(refreshRealPorts, 4000);
         };
         ws.onmessage = (event) => {
             const msg = event.data;
@@ -32,7 +43,7 @@
         };
         ws.onclose = () => {
             connected = false;
-            updateStatus('Disconnected', false);
+            updateStatus('disconnected');
             setTimeout(connectWS, 3000);
         };
         ws.onerror = () => {};
@@ -100,6 +111,9 @@
             const type = args[0];
             const msg = type === 'compile' ? 'Compile succeeded' : 'Upload succeeded';
             output('\n==' + msg + '==\n');
+            // After upload the board resets and the port re-enumerates; refresh
+            // promptly so the saved port selection is restored right away.
+            if (type === 'upload') refreshRealPorts();
         } else if (func === 'operateEndError') {
             hideLoader();
             const type = args[0];
@@ -158,7 +172,26 @@
 
     function updatePortSelector() {
         const select = document.getElementById('ports-type');
-        if (!select) return;
+        if (!select) {
+            // Mixly's toolbar hasn't rendered the port selector yet; retry shortly
+            // so the first port list (received on WS open) isn't silently lost.
+            if (portSelectRetries < 15) {
+                portSelectRetries++;
+                setTimeout(updatePortSelector, 400);
+            }
+            return;
+        }
+        portSelectRetries = 0;
+
+        // Remember the user's choice when they pick a port (user action only, not
+        // the programmatic restore below, so the saved choice isn't overwritten).
+        if (!select._smartcarPrefBound) {
+            select._smartcarPrefBound = true;
+            $(select).on('select2:select', () => {
+                prefSet(PREF_PORT, getSelectedPort() || '');
+            });
+        }
+
         const prev = select.value;
         // Clear and repopulate with real ports
         select.innerHTML = '<option value="">Select Port</option>';
@@ -169,10 +202,12 @@
             opt.textContent = label;
             select.appendChild(opt);
         }
-        // Restore previous selection if still available
-        if (prev && realPorts.some(p => p.path === prev)) {
-            select.value = prev;
-        }
+        // Restore selection: prefer the persisted port, fall back to the transient
+        // value. This re-selects the port automatically after it briefly vanishes
+        // during upload (board reset) and reappears on the next refresh.
+        const saved = prefGet(PREF_PORT);
+        const want = [saved, prev].find(v => v && realPorts.some(p => p.path === v)) || '';
+        if (want) select.value = want;
         // Trigger select2 to re-render
         try { $(select).trigger('change'); } catch(e) {}
     }
@@ -233,11 +268,24 @@
     }
 
     // ── UI: Add Buttons ─────────────────────────────────────
-    function updateStatus(text, ok) {
-        const el = document.getElementById('smartcar-status');
-        if (el) {
-            el.textContent = text;
-            el.style.color = ok ? '#4caf50' : '#f44336';
+    function updateStatus(state) {
+        const states = {
+            connecting: { color: '#fb8c00', label: '连接中', pulse: true },
+            connected: { color: '#4caf50', label: '已连接', pulse: false },
+            disconnected: { color: '#f44336', label: '未连接', pulse: false }
+        };
+        const s = states[state] || states.disconnected;
+        const dot = document.getElementById('smartcar-status-dot');
+        const text = document.getElementById('smartcar-status-text');
+        const pill = document.getElementById('smartcar-status');
+        if (dot) {
+            dot.style.background = s.color;
+            dot.classList.toggle('smartcar-status-pulse', s.pulse);
+        }
+        if (text) text.textContent = s.label;
+        if (pill) {
+            pill.style.background = s.color + '1a';
+            pill.style.color = s.color;
         }
     }
 
@@ -254,6 +302,34 @@
             .dropdown-container > span.select2:last-of-type .select2-dropdown {
                 width: 280px !important;
             }
+            /* Connection status badge */
+            .smartcar-status-pill {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                margin-right: 8px;
+                padding: 2px 9px;
+                border-radius: 11px;
+                font-size: 12px;
+                line-height: 18px;
+                background: rgba(244,67,54,0.1);
+                color: #f44336;
+                transition: background .2s, color .2s;
+            }
+            .smartcar-status-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #f44336;
+                display: inline-block;
+            }
+            .smartcar-status-dot.smartcar-status-pulse {
+                animation: smartcar-status-blink 1s ease-in-out infinite;
+            }
+            @keyframes smartcar-status-blink {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.3; }
+            }
         `;
         document.head.appendChild(style);
     }
@@ -267,11 +343,12 @@
 
         if (document.getElementById('smartcar-compile-btn')) return;
 
-        // Status indicator
+        // Status indicator (dot + label pill)
         const status = document.createElement('span');
         status.id = 'smartcar-status';
-        status.style.cssText = 'font-size:12px;margin-right:8px;color:#f44336;';
-        status.textContent = 'Connecting...';
+        status.className = 'smartcar-status-pill';
+        status.innerHTML = '<span id="smartcar-status-dot" class="smartcar-status-dot"></span>'
+            + '<span id="smartcar-status-text">连接中</span>';
 
         // Compile button
         const compileBtn = document.createElement('button');
@@ -297,6 +374,7 @@
         refreshBtn.onclick = refreshRealPorts;
 
         container.appendChild(status);
+        updateStatus('connecting');
         container.appendChild(compileBtn);
         container.appendChild(uploadBtn);
 

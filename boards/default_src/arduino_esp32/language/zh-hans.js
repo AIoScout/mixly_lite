@@ -120,4 +120,81 @@ ZhHans.ESP32_CONFIG_MESSAGE_USB_MODE = XML.render(ZhHans.ESP32_CONFIG_TEMPLATE, 
 
 ZhHans.BOARD_FS = '板卡文件管理';
 
+// ============================================
+// SmartCar Block Translations
+// ============================================
+
+// Motors
+ZhHans.SMARTCAR_MOVE_FORWARD = '前进';
+ZhHans.SMARTCAR_MOVE_BACKWARD = '后退';
+ZhHans.SMARTCAR_ROTATE_LEFT = '左转';
+ZhHans.SMARTCAR_ROTATE_RIGHT = '右转';
+ZhHans.SMARTCAR_STOP = '停止';
+ZhHans.SMARTCAR_SET_SPEED = '设置电机速度';
+ZhHans.SMARTCAR_SPEED = '速度 (0-4095)';
+
+// IR Sensors
+ZhHans.SMARTCAR_IR_DATA_UPDATA = '红外数据更新';
+ZhHans.SMARTCAR_READ_IR_LEFT = '左侧红外传感器';
+ZhHans.SMARTCAR_READ_IR_MIDDLE = '中间红外传感器';
+ZhHans.SMARTCAR_READ_IR_RIGHT = '右侧红外传感器';
+ZhHans.SMARTCAR_GET_TRACK_STATE = '循迹状态';
+
+// Ultrasonic
+ZhHans.SMARTCAR_GET_DISTANCE = '距离 (厘米)';
+
+// RFID
+ZhHans.SMARTCAR_READ_RFID = 'RFID 标签 UID';
+ZhHans.SMARTCAR_HAS_NEW_TAG = '有新 RFID 标签';
+ZhHans.SMARTCAR_RFID_UPDATE = 'RFID 更新';
+
+// Buzzer
+ZhHans.SMARTCAR_PLAY_TONE = '播放音调';
+ZhHans.SMARTCAR_FREQUENCY = '频率 (Hz)';
+ZhHans.SMARTCAR_DURATION = '持续时间 (毫秒)';
+ZhHans.SMARTCAR_BUZZER_STOP = '停止蜂鸣器';
+
+// Firebase
+ZhHans.SMARTCAR_IS_EXAM_ACTIVATED = '考试已激活';
+ZhHans.SMARTCAR_GET_TRAFFIC_LIGHT = '红绿灯';
+ZhHans.SMARTCAR_LIGHT_ID = '编号';
+ZhHans.SMARTCAR_STATE = '状态';
+ZhHans.SMARTCAR_GET_TIME_REMAIN = '剩余时间';
+ZhHans.SMARTCAR_TIME_REMAIN = '剩余时间';
+ZhHans.SMARTCAR_TARGET = 'RPM';
+
+// PID Control
+ZhHans.SMARTCAR_SET_PID = '设置 PID 参数';
+ZhHans.SMARTCAR_GET_LEFT_RPM = '左轮转速 (RPM)';
+ZhHans.SMARTCAR_GET_RIGHT_RPM = '右轮转速 (RPM)';
+ZhHans.SMARTCAR_SET_TARGET_RPM = '设置目标转速';
+ZhHans.SMARTCAR_PID_UPDATE_LOOP = 'PID 更新循环';
+
+// Tooltips
+ZhHans.SMARTCAR_MOVE_FORWARD_TOOLTIP = '让小车前进';
+ZhHans.SMARTCAR_MOVE_BACKWARD_TOOLTIP = '让小车后退';
+ZhHans.SMARTCAR_ROTATE_LEFT_TOOLTIP = '使小车左转（逆时针）';
+ZhHans.SMARTCAR_ROTATE_RIGHT_TOOLTIP = '使小车右转（顺时针）';
+ZhHans.SMARTCAR_STOP_TOOLTIP = '停止所有电机';
+ZhHans.SMARTCAR_SET_SPEED_TOOLTIP = '设置两个电机的速度（0-4095 PWM 占空比）';
+ZhHans.SMARTCAR_IR_DATA_UPDATA_TOOLTIP = '读取红外传感器并更新缓存的红外数据';
+ZhHans.SMARTCAR_READ_IR_LEFT_TOOLTIP = '读取左侧红外传感器（true = 检测到黑线）';
+ZhHans.SMARTCAR_READ_IR_MIDDLE_TOOLTIP = '读取中间红外传感器（true = 检测到黑线）';
+ZhHans.SMARTCAR_READ_IR_RIGHT_TOOLTIP = '读取右侧红外传感器（true = 检测到黑线）';
+ZhHans.SMARTCAR_GET_TRACK_STATE_TOOLTIP = '获取当前循迹状态（0-7）';
+ZhHans.SMARTCAR_GET_DISTANCE_TOOLTIP = '获取超声波传感器测得的距离（厘米）';
+ZhHans.SMARTCAR_READ_RFID_TOOLTIP = '读取当前 RFID 标签 UID';
+ZhHans.SMARTCAR_HAS_NEW_TAG_TOOLTIP = '检查是否有新的 RFID 标签';
+ZhHans.SMARTCAR_RFID_UPDATE_TOOLTIP = '读取 RFID 卡序列数据，成功读取到 UID 时返回 true';
+ZhHans.SMARTCAR_PLAY_TONE_TOOLTIP = '在蜂鸣器上播放音调';
+ZhHans.SMARTCAR_BUZZER_STOP_TOOLTIP = '停止蜂鸣器';
+ZhHans.SMARTCAR_IS_EXAM_ACTIVATED_TOOLTIP = '检查考试是否已激活';
+ZhHans.SMARTCAR_GET_TRAFFIC_LIGHT_TOOLTIP = '获取红绿灯状态（RED、YELLOW、GREEN）';
+ZhHans.SMARTCAR_GET_TIME_REMAIN_TOOLTIP = '获取红绿灯的剩余时间';
+ZhHans.SMARTCAR_SET_PID_TOOLTIP = '为两个轮子设置 PID 控制器参数';
+ZhHans.SMARTCAR_GET_LEFT_RPM_TOOLTIP = '获取左轮当前转速 (RPM)';
+ZhHans.SMARTCAR_GET_RIGHT_RPM_TOOLTIP = '获取右轮当前转速 (RPM)';
+ZhHans.SMARTCAR_SET_TARGET_RPM_TOOLTIP = '为两个轮子设置目标转速';
+ZhHans.SMARTCAR_PID_UPDATE_LOOP_TOOLTIP = '更新编码器转速并将 PID 输出应用到两个轮子的速度';
+
 export default ZhHans;
