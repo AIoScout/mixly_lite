@@ -315,21 +315,16 @@ const unsigned int g_labels_count = ${labelsCount};
     }
 
     function ensureTFLiteLibInstalled(callback) {
-        // Check if TensorFlowLiteESP32 is already installed
-        execFile(opts.arduinoCli, ['lib', 'list'], (error, stdout) => {
-            if (stdout && stdout.includes('TensorFlowLiteESP32')) {
-                callback();
-                return;
+        // The esp32 3.x core BUNDLES TFLiteMicro (packages/esp32/hardware/
+        // esp32/<ver>/libraries/TFLiteMicro) — that's what Mixly_TFLite's
+        // tensorflow/lite/... includes resolve against. The older
+        // `lib install TensorFlowLiteESP32` step always failed (no such
+        // library in the index), so just verify the core is present.
+        execFile(opts.arduinoCli, ['core', 'list'], (error, stdout) => {
+            if (error || !stdout || !/esp32:esp32\s/.test(stdout)) {
+                console.error('[tflite] esp32 core not installed — run: arduino-cli core install esp32:esp32');
             }
-            console.log('[tflite] Installing TensorFlowLiteESP32 library...');
-            execFile(opts.arduinoCli, ['lib', 'install', 'TensorFlowLiteESP32'], (installErr) => {
-                if (installErr) {
-                    console.error('[tflite] Failed to install TensorFlowLiteESP32:', installErr.message);
-                } else {
-                    console.log('[tflite] TensorFlowLiteESP32 installed');
-                }
-                callback();
-            });
+            callback();
         });
     }
 
