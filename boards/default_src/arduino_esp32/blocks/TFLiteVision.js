@@ -43,16 +43,71 @@ export const aivision_init_body = {
 // UPLOAD MODEL
 // ============================================
 
+// Model library dropdown: lists the persistent models trained in the AI
+// Training tab (GET /models on the compile server). Options come from a
+// synchronously-read cache refreshed in the background; the trailing
+// "refresh" entry force-reloads. FieldFileUpload remains on the block as a
+// secondary path — a manually uploaded file takes precedence at compile time.
+const modelMenu = { options: null, polling: false };
+
+function fetchModelMenu() {
+    return fetch('/models')
+        .then((r) => r.json())
+        .then((data) => {
+            modelMenu.options = (data.models || []).map((m) => [
+                `${m.name} (${(m.labels || []).length} classes)`,
+                m.id
+            ]);
+            return modelMenu.options;
+        })
+        .catch(() => []);
+}
+
+function ensureModelMenuPolling() {
+    if (modelMenu.polling) return;
+    modelMenu.polling = true;
+    fetchModelMenu();
+    setInterval(fetchModelMenu, 5000);
+}
+
+function modelMenuOptions() {
+    if (modelMenu.options === null) {
+        modelMenu.options = [];
+        fetchModelMenu();
+    }
+    const opts = modelMenu.options.slice();
+    if (!opts.length) {
+        opts.push([Blockly.Msg.AIVISION_NO_MODELS || "no models yet — train one first", ""]);
+    }
+    opts.push([Blockly.Msg.AIVISION_REFRESH_MODELS || "⟳ refresh", "__refresh__"]);
+    return opts;
+}
+
+function onModelRefChange(newValue) {
+    if (newValue === "__refresh__") {
+        fetchModelMenu();
+        return null; // keep the current selection
+    }
+    window.__mixly_tflite = window.__mixly_tflite || {};
+    window.__mixly_tflite.selectedModelRef = newValue || null;
+    // A library pick clears any stale manually-uploaded file so the library
+    // model is the one that compiles.
+    if (newValue) window.__mixly_tflite.modelData = null;
+    return newValue;
+}
+
 export const aivision_upload_model = {
     init: function () {
         this.setColour(AIVISION_HUE);
         this.appendDummyInput()
             .appendField(Blockly.Msg.AIVISION_UPLOAD_MODEL || "load AI model");
+        this.appendDummyInput('MODEL_PICK')
+            .appendField(new Blockly.FieldDropdown(modelMenuOptions, onModelRefChange), 'MODEL_REF');
         this.appendDummyInput('MODEL_FILE')
             .appendField(new FieldFileUpload(''), 'MODEL');
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
-        this.setTooltip(Blockly.Msg.AIVISION_UPLOAD_MODEL_TOOLTIP || "Upload a .tflite model and labels file");
+        this.setTooltip(Blockly.Msg.AIVISION_UPLOAD_MODEL_TOOLTIP || "Pick a model trained in the AI Training tab, or upload a .tflite file");
     }
 };
 

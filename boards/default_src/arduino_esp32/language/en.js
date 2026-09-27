@@ -232,3 +232,5 @@ En.PLUGIN_OPEN = 'Open';
 En.PLUGIN_STATUS_CONNECTING = 'Connecting';
 En.PLUGIN_STATUS_CONNECTED = 'Connected';
 En.PLUGIN_STATUS_DISCONNECTED = 'Not connected';
+En.AIVISION_NO_MODELS = 'no models yet — train one first';
+En.AIVISION_REFRESH_MODELS = '⟳ refresh';

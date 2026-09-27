@@ -21,6 +21,10 @@
  *                          board-config.yaml, ESP32-P4-IMX219-PoC)
  *   AIOSCOUT_DATA_DIR      writable root (sketch_build, .build_output,
  *                          libraries, .model_uploads). Defaults to resourceDir.
+ *   AIOSCOUT_MODEL_LIBRARY persistent named model library (userData/models in
+ *                          the desktop app; each entry is a directory with
+ *                          model.tflite + labels.txt + meta.json). Listed by
+ *                          GET /models and usable as a compile-time model ref.
  *   P4_IMX219_LIB          path to the P4 IMX219 camera library
  */
 
@@ -60,6 +64,7 @@ function resolveOptions(userOptions = {}) {
         smartCarDir: userOptions.smartCarDir || path.join(resourceDir, 'SmartCar'),
         mixlyTfliteDir: userOptions.mixlyTfliteDir || path.join(resourceDir, 'Mixly_TFLite'),
         p4LibDir: userOptions.p4LibDir || process.env.P4_IMX219_LIB || path.join(resourceDir, 'ESP32-P4-IMX219-PoC'),
+        modelLibraryDir: userOptions.modelLibraryDir || process.env.AIOSCOUT_MODEL_LIBRARY || null,
         onReady: userOptions.onReady || null,
     };
 }
@@ -236,25 +241,69 @@ const unsigned int g_labels_count = ${labelsCount};
 `;
     }
 
-    function deployMixlyTFLiteLib(modelSessionId) {
+    // ── Model library (persistent, owned by the desktop app) ───
+    // A model ref is either a library entry id (preferred — durable across
+    // restarts) or a legacy ephemeral upload session id (FieldFileUpload).
+    function resolveModelRef(ref) {
+        if (typeof ref === 'string' && ref && opts.modelLibraryDir && /^[A-Za-z0-9._-]+$/.test(ref)) {
+            const dir = path.join(opts.modelLibraryDir, ref);
+            const tflitePath = path.join(dir, 'model.tflite');
+            if (fs.existsSync(tflitePath)) {
+                const labelsPath = path.join(dir, 'labels.txt');
+                return { tflitePath, labelsPath: fs.existsSync(labelsPath) ? labelsPath : null };
+            }
+        }
+        const session = modelSessions.get(ref);
+        if (session) return { tflitePath: session.tflitePath, labelsPath: session.labelsPath };
+        return null;
+    }
+
+    function listLibraryModels() {
+        if (!opts.modelLibraryDir || !fs.existsSync(opts.modelLibraryDir)) return [];
+        const models = [];
+        for (const name of fs.readdirSync(opts.modelLibraryDir)) {
+            const dir = path.join(opts.modelLibraryDir, name);
+            const tflitePath = path.join(dir, 'model.tflite');
+            if (!fs.existsSync(tflitePath)) continue;
+            let meta = {};
+            try {
+                meta = JSON.parse(fs.readFileSync(path.join(dir, 'meta.json'), 'utf8')) || {};
+            } catch { /* tolerate missing/corrupt meta */ }
+            let labels = Array.isArray(meta.labels) ? meta.labels : [];
+            if (!labels.length) {
+                try { labels = fs.readFileSync(path.join(dir, 'labels.txt'), 'utf8').split('\n').map(s => s.trim()).filter(Boolean); } catch { /* none */ }
+            }
+            models.push({
+                id: name,
+                name: String(meta.name || name),
+                createdAt: Number(meta.createdAt) || fs.statSync(tflitePath).birthtimeMs || 0,
+                labels,
+                sizeBytes: fs.statSync(tflitePath).size
+            });
+        }
+        models.sort((a, b) => b.createdAt - a.createdAt);
+        return models;
+    }
+
+    function deployMixlyTFLiteLib(modelRef) {
         // Copy Mixly_TFLite library to libraries/
         const destLib = path.join(LIBRARIES_DIR, 'Mixly_TFLite');
         if (fs.existsSync(destLib)) fs.rmSync(destLib, { recursive: true });
         fs.cpSync(opts.mixlyTfliteDir, destLib, { recursive: true });
 
-        // If model session provided, generate model_data.h
-        if (modelSessionId) {
-            const session = modelSessions.get(modelSessionId);
-            if (!session) {
+        // If a model ref is provided, generate model_data.h
+        if (modelRef) {
+            const resolved = resolveModelRef(modelRef);
+            if (!resolved) {
                 // Fail loudly: compiling against the empty placeholder model would
                 // silently produce a sketch that classifies nothing.
-                throw new Error(`Unknown model session: ${modelSessionId}. Re-upload the model and try again.`);
+                throw new Error(`Unknown model: ${modelRef}. Pick a model from the AI Vision blocks or re-upload it.`);
             }
 
-            const modelBuffer = fs.readFileSync(session.tflitePath);
+            const modelBuffer = fs.readFileSync(resolved.tflitePath);
             let labelsText = '';
-            if (session.labelsPath && fs.existsSync(session.labelsPath)) {
-                labelsText = fs.readFileSync(session.labelsPath, 'utf-8');
+            if (resolved.labelsPath && fs.existsSync(resolved.labelsPath)) {
+                labelsText = fs.readFileSync(resolved.labelsPath, 'utf-8');
             }
 
             const headerContent = convertTfliteToHeader(modelBuffer, labelsText);
@@ -594,6 +643,14 @@ const unsigned int g_labels_count = ${labelsCount};
         if (urlPath === '/healthz') {
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ ok: true, port: handle.port }));
+            return;
+        }
+
+        // Persistent model library listing (consumed by the AI Vision blocks'
+        // model picker dropdown; same-origin so no CORS concerns)
+        if (urlPath === '/models') {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ models: listLibraryModels() }));
             return;
         }
 

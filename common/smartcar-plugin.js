@@ -252,6 +252,21 @@
         }
     }
 
+    // Resolve which model to compile with. Priority: a manually uploaded file
+    // (ephemeral session), else the model picked from the library dropdown on
+    // the "load AI model" block. If the sketch uses AI Vision blocks but no
+    // model is selected, abort with a clear message instead of compiling the
+    // empty placeholder.
+    async function resolveModelRef(code) {
+        if (!code.includes('Mixly_TFLite')) return null;
+        const t = window.__mixly_tflite || {};
+        if (t.modelData) return await uploadModel();
+        if (t.selectedModelRef) return t.selectedModelRef;
+        hideLoader();
+        alert('No AI model selected. Pick one on the "load AI model" block (from the AI Training tab) or upload a .tflite file.');
+        return undefined; // sentinel: abort
+    }
+
     async function doCompile() {
         if (!connected) { alert('Not connected to backend server'); return; }
         showOutput();
@@ -261,10 +276,8 @@
         const code = getCode();
         const boardType = getBoardType();
 
-        let modelSessionId = null;
-        if (window.__mixly_tflite && window.__mixly_tflite.modelData) {
-            modelSessionId = await uploadModel();
-        }
+        const modelSessionId = await resolveModelRef(code);
+        if (modelSessionId === undefined) return;
 
         const args = [1, boardType, code];
         if (modelSessionId) args.push(modelSessionId);
@@ -285,10 +298,8 @@
         const code = getCode();
         const boardType = getBoardType();
 
-        let modelSessionId = null;
-        if (window.__mixly_tflite && window.__mixly_tflite.modelData) {
-            modelSessionId = await uploadModel();
-        }
+        const modelSessionId = await resolveModelRef(code);
+        if (modelSessionId === undefined) return;
 
         const args = [1, boardType, port, code];
         if (modelSessionId) args.push(modelSessionId);
