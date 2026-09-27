@@ -17,6 +17,13 @@
     function prefGet(key) { try { return localStorage.getItem(key); } catch (e) { return null; } }
     function prefSet(key, val) { try { localStorage.setItem(key, val); } catch (e) {} }
 
+    // UI strings live in the board language files (language/{en,zh-hans,zh-hant}.js,
+    // PLUGIN_* keys) so the plugin follows the app language like the blocks do.
+    function msgText(key, fallback) {
+        const v = (window.Blockly && Blockly.Msg && Blockly.Msg[key]) || fallback;
+        return String(v || fallback);
+    }
+
     // ── WebSocket ────────────────────────────────────────────
     function connectWS() {
         ws = new WebSocket(WS_URL);
@@ -451,9 +458,9 @@
     // ── UI: Add Buttons ─────────────────────────────────────
     function updateStatus(state) {
         const states = {
-            connecting: { color: '#fb8c00', label: '连接中', pulse: true },
-            connected: { color: '#4caf50', label: '已连接', pulse: false },
-            disconnected: { color: '#f44336', label: '未连接', pulse: false }
+            connecting: { color: '#fb8c00', label: msgText('PLUGIN_STATUS_CONNECTING', 'Connecting'), pulse: true },
+            connected: { color: '#4caf50', label: msgText('PLUGIN_STATUS_CONNECTED', 'Connected'), pulse: false },
+            disconnected: { color: '#f44336', label: msgText('PLUGIN_STATUS_DISCONNECTED', 'Not connected'), pulse: false }
         };
         const s = states[state] || states.disconnected;
         const dot = document.getElementById('smartcar-status-dot');
@@ -529,20 +536,20 @@
         status.id = 'smartcar-status';
         status.className = 'smartcar-status-pill';
         status.innerHTML = '<span id="smartcar-status-dot" class="smartcar-status-dot"></span>'
-            + '<span id="smartcar-status-text">连接中</span>';
+            + '<span id="smartcar-status-text">…</span>';
 
         // Compile button
         const compileBtn = document.createElement('button');
         compileBtn.id = 'smartcar-compile-btn';
         compileBtn.className = 'layui-btn layui-btn-xs layui-btn-primary mixly-nav';
-        compileBtn.innerHTML = '<a class="icon-check">编译</a>';
+        compileBtn.innerHTML = '<a class="icon-check">' + msgText('PLUGIN_COMPILE', 'Compile') + '</a>';
         compileBtn.onclick = doCompile;
 
         // Upload button
         const uploadBtn = document.createElement('button');
         uploadBtn.id = 'smartcar-upload-btn';
         uploadBtn.className = 'layui-btn layui-btn-xs layui-btn-primary mixly-nav';
-        uploadBtn.innerHTML = '<a class="icon-upload">上传</a>';
+        uploadBtn.innerHTML = '<a class="icon-upload">' + msgText('PLUGIN_UPLOAD', 'Upload') + '</a>';
         uploadBtn.onclick = doUpload;
 
         // Refresh ports button in the nav dropdown area
@@ -561,14 +568,14 @@
         const saveBtn = document.createElement('button');
         saveBtn.id = 'smartcar-save-btn';
         saveBtn.className = 'layui-btn layui-btn-xs layui-btn-primary mixly-nav';
-        saveBtn.innerHTML = '<a class="icon-save">保存</a>';
+        saveBtn.innerHTML = '<a class="icon-save">' + msgText('PLUGIN_SAVE', 'Save') + '</a>';
         saveBtn.onclick = doSave;
 
         // Open button
         const openBtn = document.createElement('button');
         openBtn.id = 'smartcar-open-btn';
         openBtn.className = 'layui-btn layui-btn-xs layui-btn-primary mixly-nav';
-        openBtn.innerHTML = '<a class="icon-folder-open">打开</a>';
+        openBtn.innerHTML = '<a class="icon-folder-open">' + msgText('PLUGIN_OPEN', 'Open') + '</a>';
         openBtn.onclick = () => doOpen(null);
 
         container.appendChild(saveBtn);

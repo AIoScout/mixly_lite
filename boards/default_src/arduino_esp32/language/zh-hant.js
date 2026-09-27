@@ -220,3 +220,11 @@ ZhHant.AIVISION_SET_UART_PINS = '設定通訊引腳';
 ZhHant.AIVISION_SET_UART_PINS_TOOLTIP = '設定 UART 通訊引腳（預設：TX=43, RX=44）';
 
 export default ZhHant;
+// SmartCar plugin (compile/upload/save/open buttons & status pill)
+ZhHant.PLUGIN_COMPILE = '編譯';
+ZhHant.PLUGIN_UPLOAD = '上傳';
+ZhHant.PLUGIN_SAVE = '儲存';
+ZhHant.PLUGIN_OPEN = '開啟';
+ZhHant.PLUGIN_STATUS_CONNECTING = '連接中';
+ZhHant.PLUGIN_STATUS_CONNECTED = '已連接';
+ZhHant.PLUGIN_STATUS_DISCONNECTED = '未連接';

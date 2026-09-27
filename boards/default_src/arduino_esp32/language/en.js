@@ -223,3 +223,12 @@ En.AIVISION_SET_UART_PINS = 'set communication pins';
 En.AIVISION_SET_UART_PINS_TOOLTIP = 'Set UART communication pins (default: TX=43, RX=44)';
 
 export default En;
+
+// SmartCar plugin (compile/upload/save/open buttons & status pill)
+En.PLUGIN_COMPILE = 'Compile';
+En.PLUGIN_UPLOAD = 'Upload';
+En.PLUGIN_SAVE = 'Save';
+En.PLUGIN_OPEN = 'Open';
+En.PLUGIN_STATUS_CONNECTING = 'Connecting';
+En.PLUGIN_STATUS_CONNECTED = 'Connected';
+En.PLUGIN_STATUS_DISCONNECTED = 'Not connected';
