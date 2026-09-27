@@ -219,7 +219,33 @@
     }
 
     // ── Compile & Upload ─────────────────────────────────────
-    function doCompile() {
+    async function uploadModel() {
+        const tflite = window.__mixly_tflite;
+        if (!tflite || !tflite.modelData) return null;
+
+        const formData = new FormData();
+        const modelBlob = new Blob([tflite.modelData]);
+        formData.append('model', modelBlob, 'model.tflite');
+        if (tflite.labelsText) {
+            formData.append('labels', new Blob([tflite.labelsText]), 'labels.txt');
+        }
+
+        try {
+            const resp = await fetch('/upload-model', { method: 'POST', body: formData });
+            const data = await resp.json();
+            if (data.error) {
+                output('[Error] Model upload failed: ' + data.error);
+                return null;
+            }
+            output('[TFLite] Model uploaded (session: ' + data.sessionId + ')\n');
+            return data.sessionId;
+        } catch (e) {
+            output('[Error] Model upload failed: ' + e.message);
+            return null;
+        }
+    }
+
+    async function doCompile() {
         if (!connected) { alert('Not connected to backend server'); return; }
         showOutput();
         const term = getTerminal();
@@ -227,10 +253,18 @@
         showLoader('Compiling...');
         const code = getCode();
         const boardType = getBoardType();
-        sendCommand('ArduShell', 'compile', [1, boardType, code]);
+
+        let modelSessionId = null;
+        if (window.__mixly_tflite && window.__mixly_tflite.modelData) {
+            modelSessionId = await uploadModel();
+        }
+
+        const args = [1, boardType, code];
+        if (modelSessionId) args.push(modelSessionId);
+        sendCommand('ArduShell', 'compile', args);
     }
 
-    function doUpload() {
+    async function doUpload() {
         if (!connected) { alert('Not connected to backend server'); return; }
         const port = getSelectedPort();
         if (!port || port === 'null' || port === 'undefined' || port === '') {
@@ -243,7 +277,15 @@
         showLoader('Uploading...');
         const code = getCode();
         const boardType = getBoardType();
-        sendCommand('ArduShell', 'upload', [1, boardType, port, code]);
+
+        let modelSessionId = null;
+        if (window.__mixly_tflite && window.__mixly_tflite.modelData) {
+            modelSessionId = await uploadModel();
+        }
+
+        const args = [1, boardType, port, code];
+        if (modelSessionId) args.push(modelSessionId);
+        sendCommand('ArduShell', 'upload', args);
     }
 
     // ── Loader UI ────────────────────────────────────────────
@@ -265,6 +307,145 @@
     function hideLoader() {
         const loader = document.getElementById('smartcar-loader');
         if (loader) loader.style.display = 'none';
+    }
+
+    // ── File Manager (.mix save/load) ───────────────────────
+    let fileHandle = null;          // File System Access API handle
+    let autoSaveTimer = null;
+    const AUTO_SAVE_MS = 30000;     // auto-save every 30s
+
+    function getWorkspaceXml() {
+        try {
+            const workspace = Mixly.Workspace.getMain();
+            const editorsManager = workspace.getEditorsManager();
+            const editor = editorsManager.getActive();
+            if (editor && editor.getXml) return editor.getXml();
+            const blockEditor = editorsManager.getEditorByType('blockly');
+            if (blockEditor && blockEditor.getXml) return blockEditor.getXml();
+        } catch(e) {
+            console.error('[SmartCar] getWorkspaceXml error:', e);
+        }
+        return null;
+    }
+
+    function loadWorkspaceXml(xml) {
+        try {
+            const workspace = Mixly.Workspace.getMain();
+            const editorsManager = workspace.getEditorsManager();
+            const editor = editorsManager.getActive();
+            if (editor && editor.setXml) { editor.setXml(xml); return; }
+            const blockEditor = editorsManager.getEditorByType('blockly');
+            if (blockEditor && blockEditor.setXml) blockEditor.setXml(xml);
+        } catch(e) {
+            console.error('[SmartCar] loadWorkspaceXml error:', e);
+        }
+    }
+
+    function updateSaveIndicator() {
+        const el = document.getElementById('smartcar-filename');
+        if (el && fileHandle) el.textContent = fileHandle.name;
+    }
+
+    async function writeFile(handle, xml) {
+        const writable = await handle.createWritable();
+        await writable.write(xml);
+        await writable.close();
+    }
+
+    async function doSaveAs() {
+        if (!window.showSaveFilePicker) {
+            alert('Your browser does not support the File System Access API. Please use Chrome or Edge.');
+            return;
+        }
+        try {
+            fileHandle = await window.showSaveFilePicker({
+                suggestedName: 'my_program.mix',
+                types: [{ description: 'Mixly Program', accept: { 'text/xml': ['.mix'] } }]
+            });
+            const xml = getWorkspaceXml();
+            if (xml) {
+                await writeFile(fileHandle, xml);
+                updateSaveIndicator();
+                output('[File] Saved as ' + fileHandle.name + '\n');
+                startAutoSave();
+            }
+        } catch(e) {
+            if (e.name !== 'AbortError') console.error('[SmartCar] SaveAs error:', e);
+        }
+    }
+
+    async function doSave() {
+        if (!fileHandle) {
+            return doSaveAs();
+        }
+        try {
+            // Check permission
+            const perm = await fileHandle.queryPermission({ mode: 'readwrite' });
+            if (perm !== 'granted') {
+                const req = await fileHandle.requestPermission({ mode: 'readwrite' });
+                if (req !== 'granted') { doSaveAs(); return; }
+            }
+            const xml = getWorkspaceXml();
+            if (xml) {
+                await writeFile(fileHandle, xml);
+                updateSaveIndicator();
+            }
+        } catch(e) {
+            console.error('[SmartCar] Save error:', e);
+            // Permission may have been revoked — fall back to Save As
+            fileHandle = null;
+            doSaveAs();
+        }
+    }
+
+    async function doOpen(handle) {
+        try {
+            if (!handle) {
+                if (!window.showOpenFilePicker) {
+                    alert('Your browser does not support the File System Access API. Please use Chrome or Edge.');
+                    return;
+                }
+                const [picked] = await window.showOpenFilePicker({
+                    types: [{ description: 'Mixly Program', accept: { 'text/xml': ['.mix'] } }]
+                });
+                handle = picked;
+            }
+            const file = await handle.getFile();
+            const xml = await file.text();
+            if (xml) {
+                loadWorkspaceXml(xml);
+                fileHandle = handle;
+                updateSaveIndicator();
+                output('[File] Loaded ' + handle.name + '\n');
+                startAutoSave();
+            }
+        } catch(e) {
+            if (e.name !== 'AbortError') console.error('[SmartCar] Open error:', e);
+        }
+    }
+
+    function startAutoSave() {
+        if (autoSaveTimer) clearInterval(autoSaveTimer);
+        autoSaveTimer = setInterval(() => {
+            if (fileHandle) doSave().catch(() => {});
+        }, AUTO_SAVE_MS);
+    }
+
+    function handleDragDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const file = e.dataTransfer?.files?.[0];
+        if (file && (file.name.endsWith('.mix') || file.name.endsWith('.xml'))) {
+            const reader = new FileReader();
+            reader.onload = async () => {
+                loadWorkspaceXml(reader.result);
+                output('[File] Loaded ' + file.name + ' (drag-drop)\n');
+                // Can't get fileHandle from drag-drop, so first save will be "Save As"
+                fileHandle = null;
+                updateSaveIndicator();
+            };
+            reader.readAsText(file);
+        }
     }
 
     // ── UI: Add Buttons ─────────────────────────────────────
@@ -375,8 +556,32 @@
 
         container.appendChild(status);
         updateStatus('connecting');
+
+        // Save button
+        const saveBtn = document.createElement('button');
+        saveBtn.id = 'smartcar-save-btn';
+        saveBtn.className = 'layui-btn layui-btn-xs layui-btn-primary mixly-nav';
+        saveBtn.innerHTML = '<a class="icon-save">保存</a>';
+        saveBtn.onclick = doSave;
+
+        // Open button
+        const openBtn = document.createElement('button');
+        openBtn.id = 'smartcar-open-btn';
+        openBtn.className = 'layui-btn layui-btn-xs layui-btn-primary mixly-nav';
+        openBtn.innerHTML = '<a class="icon-folder-open">打开</a>';
+        openBtn.onclick = () => doOpen(null);
+
+        container.appendChild(saveBtn);
+        container.appendChild(openBtn);
         container.appendChild(compileBtn);
         container.appendChild(uploadBtn);
+
+        // Filename indicator (shows current file name)
+        const filename = document.createElement('span');
+        filename.id = 'smartcar-filename';
+        filename.style.cssText = 'font-size:11px;margin-left:6px;color:#999;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:middle;';
+        filename.textContent = '';
+        container.appendChild(filename);
 
         // Add refresh button next to the port selector in dropdown-container
         const dropdownContainer = document.querySelector('.dropdown-container');
@@ -392,6 +597,22 @@
         widenPortSelector();
         injectButtons();
         connectWS();
+
+        // Ctrl+S = Save, Ctrl+O = Open
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                doSave();
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+                e.preventDefault();
+                doOpen(null);
+            }
+        });
+
+        // Drag-drop .mix/.xml files
+        document.addEventListener('dragover', (e) => e.preventDefault());
+        document.addEventListener('drop', handleDragDrop);
     }
 
     if (document.readyState === 'loading') {

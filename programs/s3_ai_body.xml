@@ -1,0 +1,44 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <!--
+    S3 AI Body — ESP32-S3 (receives AI results from P4 via UART)
+    Steps: 1) Select ESP32-S3 board  2) Load this file  3) Upload SAME .tflite model (for labels)  4) Compile & Upload
+    Wiring: P4 TX(43) → S3 RX(44), P4 RX(44) ← S3 TX(43), common GND
+  -->
+  <variables></variables>
+
+  <!-- Setup chain -->
+  <block type="aivision_upload_model" id="upload1" x="0" y="0">
+    <next>
+      <block type="aivision_init_body" id="init1">
+      </block>
+    </next>
+  </block>
+
+  <!-- Loop: check for new result, print label -->
+  <block type="controls_if" id="if1" x="0" y="250">
+    <value name="IF0">
+      <block type="aivision_has_new_result" id="has1"></block>
+    </value>
+    <statement name="DO0">
+      <block type="serial_println" id="print1">
+        <field name="serial_select">Serial0</field>
+        <field name="new_line">println</field>
+        <value name="CONTENT">
+          <block type="aivision_predict" id="pred1">
+            <field name="RESULT_TYPE">LABEL</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+    <next>
+      <block type="controls_delay" id="delay1">
+        <field name="UNIT">millis</field>
+        <value name="DELAY_TIME">
+          <shadow type="math_number">
+            <field name="NUM">10</field>
+          </shadow>
+        </value>
+      </block>
+    </next>
+  </block>
+</xml>

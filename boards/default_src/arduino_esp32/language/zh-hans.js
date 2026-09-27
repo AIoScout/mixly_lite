@@ -196,5 +196,27 @@ ZhHans.SMARTCAR_GET_LEFT_RPM_TOOLTIP = '获取左轮当前转速 (RPM)';
 ZhHans.SMARTCAR_GET_RIGHT_RPM_TOOLTIP = '获取右轮当前转速 (RPM)';
 ZhHans.SMARTCAR_SET_TARGET_RPM_TOOLTIP = '为两个轮子设置目标转速';
 ZhHans.SMARTCAR_PID_UPDATE_LOOP_TOOLTIP = '更新编码器转速并将 PID 输出应用到两个轮子的速度';
+// AI Vision
+ZhHans.AIVISION_INIT_EYE = '初始化 AI 眼睛（摄像头+AI）';
+ZhHans.AIVISION_INIT_EYE_TOOLTIP = '在 AI 眼睛板上初始化摄像头、AI模型和通信';
+ZhHans.AIVISION_INIT_BODY = '初始化 AI 身体（接收结果）';
+ZhHans.AIVISION_INIT_BODY_TOOLTIP = '初始化为 AI 身体板，接收来自 AI 眼睛的识别结果';
+ZhHans.AIVISION_UPLOAD_MODEL = '加载 AI 模型';
+ZhHans.AIVISION_UPLOAD_MODEL_TOOLTIP = '上传 .tflite 模型和标签文件';
+ZhHans.AIVISION_USE_PSRAM = '使用 PSRAM';
+ZhHans.AIVISION_USE_INTERNAL = '使用内部 RAM';
+ZhHans.AIVISION_PREDICT = 'AI 预测';
+ZhHans.AIVISION_PREDICT_TOOLTIP = '获取 AI 预测结果';
+ZhHans.AIVISION_PREDICT_LABEL = '标签';
+ZhHans.AIVISION_PREDICT_INDEX = '类别编号';
+ZhHans.AIVISION_PREDICT_CONFIDENCE = '置信度';
+ZhHans.AIVISION_CLASS_COUNT = '类别数量';
+ZhHans.AIVISION_CLASS_COUNT_TOOLTIP = '获取 AI 模型中的类别总数';
+ZhHans.AIVISION_HAS_NEW_RESULT = '有新 AI 结果';
+ZhHans.AIVISION_HAS_NEW_RESULT_TOOLTIP = '当有新的 AI 结果时为真';
+ZhHans.AIVISION_SEND_RESULT = '发送 AI 结果给搭档';
+ZhHans.AIVISION_SEND_RESULT_TOOLTIP = '将上次 AI 预测结果发送给搭档板（默认自动发送）';
+ZhHans.AIVISION_SET_UART_PINS = '设置通信引脚';
+ZhHans.AIVISION_SET_UART_PINS_TOOLTIP = '设置 UART 通信引脚（默认：TX=43, RX=44）';
 
 export default ZhHans;

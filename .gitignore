@@ -29,3 +29,6 @@ boards/default/
 sketch_build/
 libraries/
 
+# TFLite model upload sessions
+.model_uploads/
+

@@ -1,0 +1,37 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <!--
+    P4 AI Eye — ESP32-P4 (camera + inference + auto-send to S3 via UART)
+    Steps: 1) Select ESP32-P4 board  2) Load this file  3) Upload .tflite model  4) Compile & Upload
+  -->
+  <variables></variables>
+
+  <!-- Setup chain -->
+  <block type="aivision_upload_model" id="upload1" x="0" y="0">
+    <next>
+      <block type="aivision_init_eye" id="init1">
+        <field name="USE_PSRAM">true</field>
+      </block>
+    </next>
+  </block>
+
+  <!-- Loop: predict and print label -->
+  <block type="serial_println" id="print1" x="0" y="250">
+    <field name="serial_select">Serial0</field>
+    <field name="new_line">println</field>
+    <value name="CONTENT">
+      <block type="aivision_predict" id="pred1">
+        <field name="RESULT_TYPE">LABEL</field>
+      </block>
+    </value>
+    <next>
+      <block type="controls_delay" id="delay1">
+        <field name="UNIT">millis</field>
+        <value name="DELAY_TIME">
+          <shadow type="math_number">
+            <field name="NUM">200</field>
+          </shadow>
+        </value>
+      </block>
+    </next>
+  </block>
+</xml>
