@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "ImagePreprocessor.hpp"
 
 namespace TFLiteVision {

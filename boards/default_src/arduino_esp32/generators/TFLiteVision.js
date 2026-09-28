@@ -3,8 +3,11 @@
 // ============================================
 
 const addAIVisionDefinitions = function (generator) {
-    generator.definitions_['include_AIVision'] = '#include "Mixly_TFLite/AIVision.hpp"';
-    generator.definitions_['include_model_data'] = '#include "Mixly_TFLite/model_data.h"';
+    // The umbrella header only: arduino-cli's library discovery matches a
+    // library by the `includes=` names in its library.properties, which the
+    // subpath includes did not — producing "No such file" build failures.
+    // Mixly_TFLite.h pulls in TFLIteMicro.h, AIVision.hpp and model_data.h.
+    generator.definitions_['include_AIVision'] = '#include <Mixly_TFLite.h>';
 };
 
 // ============================================

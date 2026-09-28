@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "UARTBridge.hpp"
 
 #if defined(ESP32)

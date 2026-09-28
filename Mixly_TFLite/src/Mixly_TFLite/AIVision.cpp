@@ -1,4 +1,5 @@
 #include "AIVision.hpp"
+#include <Arduino.h>
 
 #if defined(CONFIG_IDF_TARGET_ESP32P4)
 // ============================================================================
@@ -26,7 +27,7 @@ void SetUARTPins(int txPin, int rxPin) {
 bool InitEye(int width, int height,
              const unsigned char* modelData, unsigned int modelLen,
              bool usePSRAM) {
-    if (!InitCamera(width, height)) {
+    if (!TFLiteVision::InitCamera(width, height)) {
         Serial.println("[AIVision] Camera init failed");
         return false;
     }
@@ -53,7 +54,7 @@ bool InitBody(const unsigned char* modelData, unsigned int modelLen) {
 Prediction Predict() {
     if (!s_initialized) return {0, 0.0f, "not initialized"};
 
-    s_lastPred = TFLiteVision::Predict();
+    { TFLiteVision::Prediction p = TFLiteVision::Predict(); s_lastPred = { p.classIndex, p.confidence, p.label }; }
     s_hasNew = true;
     s_frameId++;
 
@@ -113,7 +114,7 @@ bool InitEye(int width, int height,
              const unsigned char* modelData, unsigned int modelLen,
              bool usePSRAM) {
     // S3 can also act as AI Eye with its own camera
-    if (!InitCamera(width, height)) {
+    if (!TFLiteVision::InitCamera(width, height)) {
         Serial.println("[AIVision] Camera init failed");
         return false;
     }
@@ -146,7 +147,7 @@ Prediction Predict() {
 
     if (s_isEye) {
         // S3 with camera: run inference locally
-        s_lastPred = TFLiteVision::Predict();
+        { TFLiteVision::Prediction p = TFLiteVision::Predict(); s_lastPred = { p.classIndex, p.confidence, p.label }; }
         s_hasNew = true;
         return s_lastPred;
     }

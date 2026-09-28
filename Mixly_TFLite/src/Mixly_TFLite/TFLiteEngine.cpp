@@ -1,11 +1,16 @@
+#include <Arduino.h>
 #include "TFLiteEngine.hpp"
 
 #if defined(ESP32)
 #include "ImagePreprocessor.hpp"
 #include "CameraCapture.hpp"
 #include "model_data.h"
+// Pull in the core-bundled TFLite Micro library by its declared entry header
+// so arduino-cli's dependency resolver adds it (the tensorflow/lite/...
+// subpath includes below do not match its `includes=` list).
+#include <TFLIteMicro.h>
 #include "tensorflow/lite/micro/micro_interpreter.h"
-#include "tensorflow/lite/micro/all_ops_resolver.h"
+#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/micro/system_setup.h"
 
@@ -53,7 +58,20 @@ bool InitModel(const unsigned char* modelData, unsigned int modelLen, bool usePS
         return false;
     }
 
-    static tflite::AllOpsResolver resolver;
+    // The esp32 3.3.x core's TFLM fork removed AllOpsResolver — register the
+    // ops our int8 CNN models use explicitly (conv / depthwise / pooling /
+    // reshape / dense / softmax + quantize bridges, plus a couple of spares).
+    static tflite::MicroMutableOpResolver<10> resolver;
+    resolver.AddQuantize();
+    resolver.AddDequantize();
+    resolver.AddConv2D();
+    resolver.AddDepthwiseConv2D();
+    resolver.AddMaxPool2D();
+    resolver.AddAveragePool2D();
+    resolver.AddReshape();
+    resolver.AddFullyConnected();
+    resolver.AddSoftmax();
+    resolver.AddLogSoftmax();
     static tflite::MicroInterpreter static_interpreter(s_model, resolver, s_arena, arenaSize);
     s_interpreter = &static_interpreter;
 
@@ -84,8 +102,8 @@ Prediction Predict() {
     if (!frameBuf) return pred;
 
     TfLiteTensor* input = s_interpreter->input(0);
-    int inputH = input->dim(1);
-    int inputW = input->dim(2);
+    int inputH = input->dims->data[1];
+    int inputW = input->dims->data[2];
 
     // Fill input tensor based on its type
     if (input->type == kTfLiteInt8) {

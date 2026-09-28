@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "P4IMX219.hpp"
 
 #if defined(CONFIG_IDF_TARGET_ESP32P4)
