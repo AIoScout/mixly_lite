@@ -347,16 +347,52 @@
     }
 
     function loadWorkspaceXml(xml) {
+        // Canonical Mixly path (see common/mfile.js): clear + domToWorkspace on
+        // the blockly workspace, then recenter.
         try {
-            const workspace = Mixly.Workspace.getMain();
-            const editorsManager = workspace.getEditorsManager();
-            const editor = editorsManager.getActive();
-            if (editor && editor.setXml) { editor.setXml(xml); return; }
-            const blockEditor = editorsManager.getEditorByType('blockly');
-            if (blockEditor && blockEditor.setXml) blockEditor.setXml(xml);
+            const dom = Blockly.utils.xml.textToDom(xml);
+            const ws = (window.Editor && Editor.blockEditor) || Blockly.getMainWorkspace();
+            ws.clear();
+            Blockly.Xml.domToWorkspace(dom, ws);
+            if (ws.scrollCenter) ws.scrollCenter();
         } catch(e) {
             console.error('[SmartCar] loadWorkspaceXml error:', e);
         }
+    }
+
+    // ── Starter programs ────────────────────────────────────
+    // A fresh install (no saved blocks for the selected board) opens with a
+    // working program instead of an empty canvas: P4 board → AI Eye program,
+    // anything else (S3) → AI Body program.
+    function starterForCurrentBoard() {
+        const fqbn = String(getBoardType() || '');
+        return fqbn.indexOf('p4') !== -1 ? '/programs/p4_ai_eye.xml' : '/programs/s3_ai_body.xml';
+    }
+
+    function workspaceBlockCount() {
+        const canvas = document.querySelector('.blocklyBlockCanvas');
+        return canvas ? canvas.children.length : -1; // -1 = not rendered yet
+    }
+
+    function ensureStarterProgram(attempt) {
+        attempt = attempt || 0;
+        if (attempt > 20) return;
+        const count = workspaceBlockCount();
+        if (count === -1) { setTimeout(() => ensureStarterProgram(attempt + 1), 500); return; }
+        if (count > 0) return; // user content restored (or already working)
+        // Give Mixly's own localStorage restore a moment before deciding.
+        setTimeout(() => {
+            if (workspaceBlockCount() > 0) return;
+            fetch(starterForCurrentBoard())
+                .then((r) => (r.ok ? r.text() : null))
+                .then((xml) => {
+                    if (!xml) return;
+                    if (workspaceBlockCount() > 0) return; // raced with a restore
+                    loadWorkspaceXml(xml);
+                    output('[SmartCar] Starter program loaded — pick a model on the "load AI model" block, then Compile & Upload.\n');
+                })
+                .catch(() => {});
+        }, 1200);
     }
 
     function updateSaveIndicator() {
@@ -615,6 +651,14 @@
         widenPortSelector();
         injectButtons();
         connectWS();
+
+        // Fresh install → open the starter program for the selected board
+        // (waits for the workspace, skips if the user already has blocks).
+        setTimeout(() => ensureStarterProgram(0), 2500);
+        // Switching boards (S3 ↔ P4) may reveal another empty workspace.
+        try {
+            $('#boards-type').on('select2:select change', () => setTimeout(() => ensureStarterProgram(0), 1500));
+        } catch (e) { /* select2 not ready */ }
 
         // Ctrl+S = Save, Ctrl+O = Open
         document.addEventListener('keydown', (e) => {
