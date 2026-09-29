@@ -351,7 +351,8 @@
         // the blockly workspace, then recenter.
         try {
             const dom = Blockly.utils.xml.textToDom(xml);
-            const ws = (window.Editor && Editor.blockEditor) || Blockly.getMainWorkspace();
+            const ws = targetWorkspace();
+            if (!ws) throw new Error('workspace not ready');
             ws.clear();
             Blockly.Xml.domToWorkspace(dom, ws);
             if (ws.scrollCenter) ws.scrollCenter();
@@ -369,30 +370,40 @@
         return fqbn.indexOf('p4') !== -1 ? '/programs/p4_ai_eye.xml' : '/programs/s3_ai_body.xml';
     }
 
+    // The workspace Mixly actually renders — the one with a flyout attached.
+    // Blockly.getMainWorkspace() can point at a temporary workspace during
+    // boot (Mixly rebuilds its editor after Loader.init), so waiting for the
+    // flyout workspace is also our "fully initialized" signal.
+    function targetWorkspace() {
+        try {
+            if (window.Editor && window.Editor.blockEditor) return window.Editor.blockEditor;
+            for (const w of Blockly.Workspace.getAll()) {
+                if (w.rendered && w.getFlyout && w.getFlyout()) return w;
+            }
+        } catch (e) { /* not ready */ }
+        return null;
+    }
+
     function workspaceBlockCount() {
-        const canvas = document.querySelector('.blocklyBlockCanvas');
-        return canvas ? canvas.children.length : -1; // -1 = not rendered yet
+        const ws = targetWorkspace();
+        return ws ? ws.getAllBlocks(false).length : -1; // -1 = not ready yet
     }
 
     function ensureStarterProgram(attempt) {
         attempt = attempt || 0;
-        if (attempt > 20) return;
+        if (attempt > 40) return; // ~20s
         const count = workspaceBlockCount();
         if (count === -1) { setTimeout(() => ensureStarterProgram(attempt + 1), 500); return; }
         if (count > 0) return; // user content restored (or already working)
-        // Give Mixly's own localStorage restore a moment before deciding.
-        setTimeout(() => {
-            if (workspaceBlockCount() > 0) return;
-            fetch(starterForCurrentBoard())
-                .then((r) => (r.ok ? r.text() : null))
-                .then((xml) => {
-                    if (!xml) return;
-                    if (workspaceBlockCount() > 0) return; // raced with a restore
-                    loadWorkspaceXml(xml);
-                    output('[SmartCar] Starter program loaded — pick a model on the "load AI model" block, then Compile & Upload.\n');
-                })
-                .catch(() => {});
-        }, 1200);
+        fetch(starterForCurrentBoard())
+            .then((r) => (r.ok ? r.text() : null))
+            .then((xml) => {
+                if (!xml) return;
+                if (workspaceBlockCount() > 0) return; // raced with a restore
+                loadWorkspaceXml(xml);
+                output('[SmartCar] Starter program loaded — pick a model on the "load AI model" block, then Compile & Upload.\n');
+            })
+            .catch(() => {});
     }
 
     function updateSaveIndicator() {
