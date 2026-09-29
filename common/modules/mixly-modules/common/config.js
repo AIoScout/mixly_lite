@@ -73,6 +73,14 @@ Config.init = () => {
         ...LocalStorage.get(LocalStorage.PATH['USER']) ?? {}
     };
 
+    if (Config.USER.theme === 'auto') {
+        // Newer integrations (AIoScout desktop) seed theme='auto' directly —
+        // normalize to the themeAuto flag so consumers comparing
+        // USER.theme === 'dark' (ace console themes, blockly renderer, …)
+        // see the resolved value.
+        Config.USER.themeAuto = true;
+    }
+
     if (Config.USER.themeAuto) {
         const themeMedia = window.matchMedia("(prefers-color-scheme: light)");
         Config.USER.theme = themeMedia.matches ? 'light' : 'dark';
