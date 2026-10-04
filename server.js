@@ -534,6 +534,9 @@ const unsigned int g_labels_count = ${labelsCount};
         const useTFLite = code.includes('Mixly_TFLite');
 
         const doUpload = () => {
+            // esptool needs exclusive access — release anything the serial
+            // monitor holds (even on the target port) before uploading.
+            closeAllSerialPorts();
             const sketchPath = writeSketch(code);
             if (fs.existsSync(BUILD_DIR)) fs.rmSync(BUILD_DIR, { recursive: true, force: true });
             ensureDir(BUILD_DIR);
@@ -575,6 +578,18 @@ const unsigned int g_labels_count = ${labelsCount};
             currentProcess.kill('SIGTERM');
             currentProcess = null;
         }
+    }
+
+    function closeAllSerialPorts() {
+        let closed = 0;
+        for (const [name, entry] of activeSerialPorts) {
+            try {
+                entry.serialPort.close();
+            } catch { /* already closed */ }
+            activeSerialPorts.delete(name);
+            closed++;
+        }
+        return closed;
     }
 
     // ── Serial Port ────────────────────────────────────────────
@@ -652,6 +667,16 @@ const unsigned int g_labels_count = ${labelsCount};
         // Handle model upload
         if (req.method === 'POST' && urlPath === '/upload-model') {
             handleModelUpload(req, res);
+            return;
+        }
+
+        // Release every open serial port (the desktop shell calls this when
+        // the user switches away from the block editor, so the training app
+        // can open the same board; also safe to call any time).
+        if (req.method === 'POST' && urlPath === '/serial/close-all') {
+            const closed = closeAllSerialPorts();
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ ok: true, closed }));
             return;
         }
 
