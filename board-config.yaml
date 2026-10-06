@@ -27,7 +27,13 @@
 "esp32:esp32:esp32s3":
   UploadSpeed: "115200"
   CDCOnBoot: "cdc"
+  FlashSize: "8M"
+  PartitionScheme: "no_ota"
+  CPUFreq: "240"
 
 "esp32:esp32:esp32p4":
   UploadSpeed: "115200"
   CDCOnBoot: "cdc"
+  FlashSize: "8M"
+  PartitionScheme: "no_ota"
+  CPUFreq: "360"
