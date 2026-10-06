@@ -30,3 +30,4 @@
 
 "esp32:esp32:esp32p4":
   UploadSpeed: "115200"
+  CDCOnBoot: "cdc"
