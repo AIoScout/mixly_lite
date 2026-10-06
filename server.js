@@ -129,11 +129,26 @@ function createServer(userOptions = {}) {
     // Append default options to a bare FQBN. If the FQBN already carries options
     // (user/IDE override), it is returned unchanged.
     function applyBoardDefaults(boardType) {
-        if (!boardType || boardType.includes('=')) return boardType;
-        const defaults = BOARD_DEFAULTS[boardType];
+        if (!boardType) return boardType;
+        // FQBN shape: package:arch:board[:k=v,k=v,...]. The board-config UI
+        // always sends a fully-qualified FQBN, so yaml entries must MERGE
+        // into the existing options (yaml wins for its keys — these are
+        // product-level settings like UploadSpeed / CDCOnBoot) rather than
+        // only filling in a bare FQBN.
+        const parts = boardType.split(':');
+        const fqbn = parts.slice(0, 3).join(':');
+        const defaults = BOARD_DEFAULTS[fqbn];
         if (!defaults) return boardType;
-        const boardOpts = Object.entries(defaults).map(([k, v]) => `${k}=${v}`).join(',');
-        return `${boardType}:${boardOpts}`;
+        const opts = {};
+        if (parts[3]) {
+            for (const pair of parts[3].split(',')) {
+                const eq = pair.indexOf('=');
+                if (eq > 0) opts[pair.slice(0, eq)] = pair.slice(eq + 1);
+            }
+        }
+        Object.assign(opts, defaults);
+        const boardOpts = Object.entries(opts).map(([k, v]) => `${k}=${v}`).join(',');
+        return `${fqbn}:${boardOpts}`;
     }
 
     // ── Helpers ────────────────────────────────────────────────
