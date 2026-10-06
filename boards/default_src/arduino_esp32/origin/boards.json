@@ -143,12 +143,12 @@
                 "messageId": "ESP32_CONFIG_MESSAGE_USB_CDC_ON_BOOT",
                 "options": [
                     {
-                        "key": "default",
-                        "label": "Disabled"
-                    },
-                    {
                         "key": "cdc",
                         "label": "Enabled"
+                    },
+                    {
+                        "key": "default",
+                        "label": "Disabled"
                     }
                 ]
             },
