@@ -221,7 +221,38 @@ function createServer(userOptions = {}) {
         }
     }
 
-    function convertTfliteToHeader(modelBuffer, labelsText) {
+    // Bake the training app's class filter settings into the generated
+    // header. Modes: 0=off/full-frame (legacy), 1=sign (dark/lum search),
+    // 2=junction band, 3=manual ROI. Keep in lockstep with
+    // Mixly_TFLite/src/Mixly_TFLite/SignPreprocess.hpp.
+    function preprocessToHeader(preprocessPath) {
+        const MODES = { none: 0, sign: 1, junction: 2, manual: 3 };
+        let cfg = null;
+        if (preprocessPath && fs.existsSync(preprocessPath)) {
+            try {
+                cfg = JSON.parse(fs.readFileSync(preprocessPath, 'utf8'));
+            } catch (e) {
+                console.warn(`[tflite] preprocess.json unreadable, baking mode=off: ${e.message}`);
+            }
+        }
+        const mode = cfg && MODES[cfg.mode] !== undefined ? MODES[cfg.mode] : 0;
+        let decls = `// Class filter settings baked from the training app (preprocess.json)\n`;
+        decls += `// mode: 0=off/full-frame, 1=sign (dark/lum search), 2=junction band, 3=manual ROI\n`;
+        decls += `const int g_preprocess_mode = ${mode};\n`;
+        // The constant set is always complete so the library can reference
+        // every symbol unconditionally.
+        const dark = mode === 1 && Number.isFinite(cfg.dark) ? Math.max(0, Math.min(100, cfg.dark | 0)) : 0;
+        const lum = mode === 1 && Number.isFinite(cfg.lum) ? Math.max(50, Math.min(255, cfg.lum | 0)) : 100;
+        decls += `const int g_preprocess_dark = ${dark};\n`;
+        decls += `const int g_preprocess_lum = ${lum};\n`;
+        const roi = mode === 3 && Array.isArray(cfg.roi) && cfg.roi.length === 4
+            ? cfg.roi.map((v) => `${Math.max(0, Math.min(1, Number(v) || 0))}f`).join(', ')
+            : '0.1f, 0.2f, 0.9f, 0.8f';
+        decls += `const float g_preprocess_roi[4] = { ${roi} };\n`;
+        return decls;
+    }
+
+    function convertTfliteToHeader(modelBuffer, labelsText, preprocessPath) {
         const hexBytes = [];
         for (let i = 0; i < modelBuffer.length; i++) {
             hexBytes.push('0x' + modelBuffer[i].toString(16).padStart(2, '0'));
@@ -252,7 +283,7 @@ ${lines.join(',\n')}
 const unsigned int g_model_data_len = ${modelBuffer.length};
 const char* const g_labels[] = {${labelsArray}};
 const unsigned int g_labels_count = ${labelsCount};
-#endif
+${preprocessToHeader(preprocessPath)}#endif
 `;
     }
 
@@ -265,11 +296,16 @@ const unsigned int g_labels_count = ${labelsCount};
             const tflitePath = path.join(dir, 'model.tflite');
             if (fs.existsSync(tflitePath)) {
                 const labelsPath = path.join(dir, 'labels.txt');
-                return { tflitePath, labelsPath: fs.existsSync(labelsPath) ? labelsPath : null };
+                const preprocessPath = path.join(dir, 'preprocess.json');
+                return {
+                    tflitePath,
+                    labelsPath: fs.existsSync(labelsPath) ? labelsPath : null,
+                    preprocessPath: fs.existsSync(preprocessPath) ? preprocessPath : null
+                };
             }
         }
         const session = modelSessions.get(ref);
-        if (session) return { tflitePath: session.tflitePath, labelsPath: session.labelsPath };
+        if (session) return { tflitePath: session.tflitePath, labelsPath: session.labelsPath, preprocessPath: null };
         return null;
     }
 
@@ -321,11 +357,12 @@ const unsigned int g_labels_count = ${labelsCount};
                 labelsText = fs.readFileSync(resolved.labelsPath, 'utf-8');
             }
 
-            const headerContent = convertTfliteToHeader(modelBuffer, labelsText);
+            const headerContent = convertTfliteToHeader(modelBuffer, labelsText, resolved.preprocessPath);
             const headerPath = path.join(destLib, 'src', 'Mixly_TFLite', 'model_data.h');
             fs.writeFileSync(headerPath, headerContent);
 
-            console.log(`[tflite] Generated model_data.h (${modelBuffer.length} bytes, ${labelsText ? labelsText.trim().split('\n').length : 0} labels)`);
+            const ppNote = resolved.preprocessPath ? '' : ' (no preprocess config — mode=off)';
+            console.log(`[tflite] Generated model_data.h (${modelBuffer.length} bytes, ${labelsText ? labelsText.trim().split('\n').length : 0} labels${ppNote})`);
         }
     }
 
