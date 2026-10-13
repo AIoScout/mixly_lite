@@ -5,7 +5,7 @@ AItraining host pipeline (`image_preprocess.py`). Run before changing
 `Mixly_TFLite/src/Mixly_TFLite/SignPreprocess.cpp`.
 
 ```bash
-cd tests/preprocess-parity
+cd tests/preprocess-parity # Arduino.h shim included
 cp ../../Mixly_TFLite/src/Mixly_TFLite/SignPreprocess.{hpp,cpp} .
 g++ -O2 -ffp-contract=off -std=c++17 -I. test_main.cpp SignPreprocess.cpp -o pp_test
 /path/to/AItraining/.venv/bin/python parity.py
