@@ -502,6 +502,18 @@ ${preprocessToHeader(preprocessPath)}#endif
         }));
     }
 
+    // The page's WebSocket can drop mid-operation (laptop lid, reload) and
+    // mixly's frontend reconnects within a second — long-running compile/
+    // upload results must go to a live client, not the (possibly dead)
+    // socket that started them, or a successful upload reports failure.
+    function aliveWs(preferred) {
+        if (preferred && preferred.readyState === 1) return preferred;
+        for (const client of wss.clients) {
+            if (client.readyState === 1) return client;
+        }
+        return preferred;
+    }
+
     function runArduinoCLI(ws, cliArgs, layerNum, type) {
         console.log(`[cli] ${opts.arduinoCli} ${cliArgs.join(' ')}`);
         currentProcess = execFile(opts.arduinoCli, cliArgs, {
@@ -510,13 +522,14 @@ ${preprocessToHeader(preprocessPath)}#endif
         }, (error, stdout, stderr) => {
             currentProcess = null;
             const output = (stdout || '') + (stderr || '');
+            const target = aliveWs(ws);
 
             if (error) {
-                sendCommand(ws, 'Mixly.WebSocket.ArduShell', 'addValue', [output]);
-                sendCommand(ws, 'Mixly.WebSocket.ArduShell', 'operateEndError', [type, layerNum, '']);
+                sendCommand(target, 'Mixly.WebSocket.ArduShell', 'addValue', [output]);
+                sendCommand(target, 'Mixly.WebSocket.ArduShell', 'operateEndError', [type, layerNum, '']);
             } else {
-                sendCommand(ws, 'Mixly.WebSocket.ArduShell', 'addValue', [output]);
-                sendCommand(ws, 'Mixly.WebSocket.ArduShell', 'operateSuccess', [type, layerNum, '', '115200', '0s']);
+                sendCommand(target, 'Mixly.WebSocket.ArduShell', 'addValue', [output]);
+                sendCommand(target, 'Mixly.WebSocket.ArduShell', 'operateSuccess', [type, layerNum, '', '115200', '0s']);
             }
         });
 
@@ -524,7 +537,7 @@ ${preprocessToHeader(preprocessPath)}#endif
         const stream = (data) => {
             const chunk = data.toString();
             if (!currentProcess) return;
-            sendCommand(ws, 'Mixly.WebSocket.ArduShell', 'addValue', [chunk]);
+            sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'addValue', [chunk]);
         };
         currentProcess.stdout?.on('data', stream);
         currentProcess.stderr?.on('data', stream);

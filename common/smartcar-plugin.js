@@ -112,7 +112,21 @@
         if (obj === 'Mixly.WebSocket.Serial' && func === 'setPorts') {
             handleSerialPorts(cmd);
         } else if (func === 'addValue' && args.length >= 1) {
-            output(args[0]);
+            // Serial line from the server: [portName, line]. Feed the
+            // native serial monitor tab when one is open for that port;
+            // the smartcar console gets the line too as a fallback.
+            const line = args.length >= 2 ? args[1] : args[0];
+            if (args.length >= 2) {
+                try {
+                    const sb = Mixly.mainStatusBarTabs?.getStatusBarById(args[0]);
+                    const s = sb?.getSerial?.();
+                    if (s?.isOpened?.()) {
+                        s.runEvent('onString', line);
+                        for (const ch of line) s.runEvent('onChar', ch);
+                    }
+                } catch (e) { /* monitor closed — console output below */ }
+            }
+            output(line);
         } else if (func === 'operateSuccess') {
             hideLoader();
             const type = args[0];
@@ -217,6 +231,16 @@
         if (want) select.value = want;
         // Trigger select2 to re-render
         try { $(select).trigger('change'); } catch(e) {}
+
+        // Feed mixly's native serial monitor too: the statusbar "Open port"
+        // menu reads Serial.getCurrentPortsName(), which is only populated by
+        // the Serial.setPorts → renderSelectBox path we intercept above.
+        // Without this the monitor's port list stays forever empty.
+        try {
+            if (window.Mixly && Mixly.Serial && Mixly.Serial.portsName) {
+                Mixly.Serial.portsName = realPorts.map(p => p.path).sort();
+            }
+        } catch (e) { /* non-fatal */ }
     }
 
     function getSelectedPort() {
@@ -224,6 +248,62 @@
         if (!select) return null;
         try { return $(select).val() || null; } catch(e) { return select.value || null; }
     }
+
+    // ── Server-WS transport for the native serial monitor ────
+    // Web mode binds the statusbar serial monitor to the browser WebSerial
+    // API, which needs a user-gesture port picker and holds the port inside
+    // the renderer — the desktop shell's port handoff (/serial/close-all,
+    // server-side) could never release it. The WebSerial class itself is
+    // module-private, so wrap StatusBarSerial.init and rebind each created
+    // serial instance to our server's WebSocket serial (the transport
+    // compile/upload already use); the monitor then participates in the
+    // handoff by construction. Incoming lines arrive via the addValue
+    // branch of handleResponse above.
+    function patchSerialInstanceToWs(s) {
+        if (!s || s.__serverWs) return;
+        s.__serverWs = true;
+        s.__wsOpen = false;
+        // NOTE: sendCommand URI-encodes args itself — pass raw values.
+        s.open = async function (baud) {
+            const port = this.getPortName();
+            if (!port) throw new Error('no port selected');
+            sendCommand('Serial', 'open', [port, String(baud ?? 115200)]);
+            this.__wsOpen = true;
+            this.runEvent('onOpen');
+        };
+        s.close = async function () {
+            const port = this.getPortName();
+            if (port) sendCommand('Serial', 'close', [port]);
+            this.__wsOpen = false;
+            this.runEvent('onClose');
+        };
+        s.isOpened = function () { return !!this.__wsOpen; };
+        s.write = async function (data) {
+            const port = this.getPortName();
+            if (port && this.__wsOpen) {
+                sendCommand('Serial', 'write', [port, String(data)]);
+            }
+        };
+        s.setDTRAndRTS = async function () { /* server transport has no line control */ };
+    }
+
+    function installServerWsSerial(attempt) {
+        attempt = attempt || 0;
+        const SBSCls = window.Mixly?.StatusBarSerial;
+        if (!SBSCls?.prototype) {
+            if (attempt < 60) setTimeout(() => installServerWsSerial(attempt + 1), 500);
+            return;
+        }
+        if (SBSCls.prototype.__wsWrapped) return;
+        SBSCls.prototype.__wsWrapped = true;
+        const origInit = SBSCls.prototype.init;
+        SBSCls.prototype.init = function (...args) {
+            const r = origInit.apply(this, args);
+            try { patchSerialInstanceToWs(this.getSerial()); } catch (e) { /* keep native */ }
+            return r;
+        };
+    }
+    installServerWsSerial();
 
     // ── Compile & Upload ─────────────────────────────────────
     async function uploadModel() {
