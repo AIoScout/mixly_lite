@@ -81,7 +81,23 @@ export class ArduinoGenerator extends Blockly.Generator {
             }
         }
         // Convert the setups dictionary into a list.
+        // Serial.begin must emit FIRST: init blocks (AIVision::InitEye /
+        // InitBody, WiFi, ...) print from inside setup(), and the serial
+        // setup entry is registered lazily by whichever serial block the
+        // generator visits — block order in the workspace decides it.
+        // Without the hoist, a serial block placed after an init block
+        // emits Serial.begin below the init's prints and the board shows no
+        // app output. Hoisting every serial begin keeps their own relative
+        // order and moves nothing else.
         var setups = [];
+        var serialKeys = [];
+        for (let name in this.setups_) {
+            if (name.indexOf('setup_serial_') === 0) serialKeys.push(name);
+        }
+        for (var sk in serialKeys) {
+            setups.push(this.setups_[serialKeys[sk]]);
+            delete this.setups_[serialKeys[sk]];
+        }
         for (let name in this.setups_) {
             setups.push(this.setups_[name]);
         }
