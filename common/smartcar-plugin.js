@@ -30,6 +30,9 @@
         ws.onopen = () => {
             console.log('[SmartCar] WebSocket connected');
             connected = true;
+            // Server-backed serial: flag the page so chrome that only makes
+            // sense for browser WebSerial authorization can hide itself.
+            document.body.classList.add('smartcar-ws');
             updateStatus('connected');
             while (pendingMessages.length > 0) {
                 ws.send(pendingMessages.shift());
@@ -50,6 +53,7 @@
         };
         ws.onclose = () => {
             connected = false;
+            document.body.classList.remove('smartcar-ws');
             updateStatus('disconnected');
             setTimeout(connectWS, 3000);
         };
@@ -734,13 +738,20 @@
                 align-items: center;
                 gap: 5px;
                 margin-right: 8px;
-                padding: 2px 9px;
+                padding: 0 10px;
                 border-radius: 11px;
                 font-size: 12px;
-                line-height: 18px;
+                line-height: 1;
+                white-space: nowrap;
+                height: 26px;
                 background: rgba(244,67,54,0.1);
                 color: #f44336;
                 transition: background .2s, color .2s;
+            }
+            /* WebSerial authorization button is web-mode only; the embedded
+               server lists/opens ports itself. */
+            body.smartcar-ws #port-add-btn {
+                display: none !important;
             }
             .smartcar-status-dot {
                 width: 8px;

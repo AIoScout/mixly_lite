@@ -706,3 +706,183 @@ html body .layui-layer-btn a {
     font-family: 'Inter', 'Helvetica Neue', Helvetica, 'PingFang SC',
         'Microsoft YaHei', sans-serif;
 }
+
+/* ── Toolbar rhythm: every control one height, centered in the nav ──
+   Mixly's template mixes 28px left buttons, 22px layui-xs buttons,
+   20px tab buttons and selects on the text baseline (tops drift to
+   -4..+7px). Normalize to a single 26px control height, vertically
+   centered in the 35px bar. */
+html[data-bs-theme=light] body ul.layui-nav[m-id],
+html[data-bs-theme=dark] body ul.layui-nav[m-id] {
+    align-items: center;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] .left-btn-container,
+html[data-bs-theme=light] body ul.layui-nav[m-id] .right-btn-container,
+html[data-bs-theme=light] body ul.layui-nav[m-id] .dropdown-container,
+html[data-bs-theme=light] body ul.layui-nav[m-id] .right-menu-container,
+html[data-bs-theme=light] body ul.layui-nav[m-id] .right-area,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .left-btn-container,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .right-btn-container,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .dropdown-container,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .right-menu-container,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .right-area {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] button,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] button {
+    height: 26px !important;
+    min-height: 26px !important;
+    line-height: 24px !important;
+    margin: 0 2px !important;
+    padding: 0 9px !important;
+    font-size: 13px !important;
+    box-sizing: border-box;
+    vertical-align: middle;
+    flex: none;
+}
+
+/* icon glyphs inside the buttons */
+html[data-bs-theme=light] body ul.layui-nav[m-id] button > a,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] button > a {
+    font-size: 14px !important;
+    line-height: 1 !important;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* icon-only refresh button stays square */
+html[data-bs-theme=light] body ul.layui-nav[m-id] #smartcar-refresh-ports,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] #smartcar-refresh-ports {
+    width: 26px !important;
+    padding: 0 !important;
+    justify-content: center;
+}
+
+/* select2 selections + rendered text sit on the same line box */
+html[data-bs-theme=light] body ul.layui-nav[m-id] select + .select2 > .selection > .select2-selection,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] select + .select2 > .selection > .select2-selection {
+    height: 26px !important;
+    display: flex !important;
+    align-items: center;
+    vertical-align: middle;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] .select2-selection__rendered,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .select2-selection__rendered {
+    line-height: 1 !important;
+    margin-right: 18px;
+}
+
+/* editor tab chip: same band height, buttons 22px inside */
+html[data-bs-theme=light] body ul.layui-nav[m-id] > .editor-btn-container,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] > .editor-btn-container {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    height: 30px;
+    margin: auto 4px;
+    padding: 0 2px;
+    flex: none;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] > .editor-btn-container .group,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] > .editor-btn-container .group {
+    display: inline-flex;
+    align-items: center;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] > .editor-btn-container .group > button,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] > .editor-btn-container .group > button {
+    height: 22px !important;
+    min-height: 22px !important;
+    line-height: 20px !important;
+    margin: 0 1px !important;
+    padding: 0 8px !important;
+    font-size: 12px !important;
+}
+
+/* ── No-wrap header: keep one row at the desktop content width ──
+   The shell's coding view is narrower than the window (~1230px at
+   1440); the default row (buttons + tab chip + two selects) wraps
+   into a second band that overlaps the workspace. Forbid wrapping
+   and slim the widest control (port select) instead. */
+html[data-bs-theme=light] body ul.layui-nav[m-id],
+html[data-bs-theme=dark] body ul.layui-nav[m-id],
+html[data-bs-theme=light] body ul.layui-nav[m-id] > div,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] > div,
+html[data-bs-theme=light] body ul.layui-nav[m-id] .left-btn-container,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .left-btn-container,
+html[data-bs-theme=light] body ul.layui-nav[m-id] .right-area,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .right-area,
+html[data-bs-theme=light] body ul.layui-nav[m-id] .dropdown-container,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .dropdown-container {
+    flex-wrap: nowrap;
+}
+
+/* slim the port select (the plugin pins it at 280px) */
+html[data-bs-theme=light] body ul.layui-nav[m-id] .dropdown-container > span.select2:last-of-type .select2-selection,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .dropdown-container > span.select2:last-of-type .select2-selection {
+    width: 200px !important;
+}
+
+/* trim button side padding so the row fits without squeezing */
+html[data-bs-theme=light] body ul.layui-nav[m-id] .left-btn-container button,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .left-btn-container button {
+    padding: 0 7px !important;
+}
+
+/* ── Width diet: fit the full row at ~1230px content width ──
+   Row inventory at default paddings ≈ 1540px (left group 699 + tab
+   chip 188 + right area 636). Trim paddings, margins and select
+   widths so the no-wrap row fits the shell's coding view. */
+html[data-bs-theme=light] body ul.layui-nav[m-id],
+html[data-bs-theme=dark] body ul.layui-nav[m-id] {
+    padding: 0 6px;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] button,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] button {
+    margin: 0 1px !important;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] .left-btn-container button,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .left-btn-container button {
+    padding: 0 5px !important;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] .dropdown-container > *,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .dropdown-container > * {
+    margin-left: 3px !important;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] .dropdown-container > span.select2:first-of-type .select2-selection,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .dropdown-container > span.select2:first-of-type .select2-selection {
+    width: 140px !important;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] .dropdown-container > span.select2:last-of-type .select2-selection,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .dropdown-container > span.select2:last-of-type .select2-selection {
+    width: 175px !important;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] .smartcar-status-pill,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .smartcar-status-pill {
+    padding: 0 8px;
+    margin-right: 3px;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] > .editor-btn-container,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] > .editor-btn-container {
+    margin: auto 2px;
+    padding: 0 1px;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] > .editor-btn-container .group > button,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] > .editor-btn-container .group > button {
+    padding: 0 6px !important;
+    margin: 0 !important;
+}
