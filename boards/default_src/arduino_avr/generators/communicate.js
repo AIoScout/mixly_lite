@@ -98,8 +98,8 @@ export const ir_recv_raw = function (_, generator) {
     var dropdown_pin = generator.valueToCode(this, 'PIN', generator.ORDER_ATOMIC);
     generator.definitions_['include_IRremote'] = '#include <IRremote.h>\n';
     generator.definitions_['var_declare_ir_recv' + dropdown_pin] = 'IRrecv irrecv_' + dropdown_pin + '(' + dropdown_pin + ');\ndecode_results results_' + dropdown_pin + ';\n';
-    if (!generator.setups_['setup_serial_Serial']) {
-        generator.setups_['setup_serial_Serial'] = 'Serial.begin(' + Profile.default.serial + ');';
+    if (!generator.setups_begin_['setup_serial_Serial']) {
+        generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(' + Profile.default.serial + ');';
     }
     generator.setups_['setup_ir_recv_' + dropdown_pin] = 'irrecv_' + dropdown_pin + '.enableIRIn();\n';
     var code = "if (irrecv_" + dropdown_pin + ".decode(&results_" + dropdown_pin + ")) {\n"
@@ -186,7 +186,7 @@ export const RFID_init = function (_, generator) {
     generator.definitions_['define_12'] = ' {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},';
     generator.definitions_['define_13'] = ' {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xff,0x07,0x80,0x69, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},';
     generator.definitions_['define_14'] = ' {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xff,0x07,0x80,0x69, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF},};';
-    generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+    generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
     generator.setups_['setup_output_2'] = 'SPI.begin();';
     generator.setups_['setup_output_3'] = 'rfid.init();';
     return "";
@@ -430,7 +430,7 @@ export const MFRC522_WriteCard = function (_, generator) {
         + '  }\n'
         + '  return true;\n'
         + '}\n'
-    generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+    generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
     var code = 'MFRC522_WriteCard(&' + text_rfid_name + ', ' + value_block + ', ' + value_buffer + ', ' + value_length + ');\n';
     return code;
 };
@@ -483,7 +483,7 @@ export const MFRC522_ReadCard = function (_, generator) {
         + '  }\n'
         + '  return true;\n'
         + '}\n'
-    generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+    generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
     var code = 'MFRC522_ReadCard(&' + text_rfid_name + ', ' + value_block + ', ' + value_buffer + ', ' + value_length + ');\n';
     return code;
 };

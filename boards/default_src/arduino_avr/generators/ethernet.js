@@ -311,7 +311,7 @@ export const WIFI_ap_or_sta = function (_, generator) {
         generator.definitions_['include_ESP8266WiFi'] = '#include <ESP8266WiFi.h>';
     else
         generator.definitions_['include_WiFi'] = '#include <WiFi.h>';
-    generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+    generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
     if (dropdown_mode == 'STA') {
         generator.definitions_['include_WiFiUdp'] = '#include <WiFiUdp.h>';
         generator.definitions_['define_STASSID'] = '#define STASSID ' + value_SSID + '';
@@ -388,7 +388,7 @@ export const WIFI_ap_and_sta = function (_, generator) {
     generator.definitions_['var_declare_incomingPacket'] = 'char incomingPacket[537];';
     generator.definitions_['var_declare_A'] = 'char A;';
     generator.definitions_['var_declare_Udp'] = 'WiFiUDP Udp;';
-    generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+    generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
     generator.setups_['setup_wifi_ap_and_sta'] = 'WiFi.mode(WIFI_AP_STA);\n'
         + '  WiFi.softAP(AP_NameChar, WiFiAPPSK);\n'
         + '  WiFi.begin(STASSID, STAPSK);\n'

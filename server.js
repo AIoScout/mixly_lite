@@ -648,6 +648,12 @@ ${preprocessToHeader(preprocessPath)}#endif
     function closeAllSerialPorts() {
         let closed = 0;
         for (const [name, entry] of activeSerialPorts) {
+            // Tell the owning client BEFORE closing so its monitor reflects
+            // the real state (the client-side open flag would otherwise go
+            // stale and block a later reopen).
+            try {
+                sendCommand(entry.ws, 'Mixly.WebSocket.Serial', 'closed', [name]);
+            } catch { /* best effort */ }
             try {
                 entry.serialPort.close();
             } catch { /* already closed */ }

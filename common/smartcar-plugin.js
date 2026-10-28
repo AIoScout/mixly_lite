@@ -111,6 +111,18 @@
 
         if (obj === 'Mixly.WebSocket.Serial' && func === 'setPorts') {
             handleSerialPorts(cmd);
+        } else if (obj === 'Mixly.WebSocket.Serial' && func === 'closed') {
+            // The server released this port (page-switch handoff via
+            // /serial/close-all, or an upload needing exclusive access).
+            // Reflect it in the monitor so a later reopen actually reopens.
+            try {
+                const sb = Mixly.mainStatusBarTabs?.getStatusBarById(args[0]);
+                const s = sb?.getSerial?.();
+                if (sb && s && s.__serverWs && s.isOpened()) {
+                    s.__autoReopen = true;   // reopen on visibility / upload end
+                    sb.close().catch(() => {});
+                }
+            } catch (e) { /* monitor tab gone */ }
         } else if (func === 'addValue' && args.length >= 1) {
             // Serial line from the server: [portName, line]. Feed the
             // native serial monitor tab when one is open for that port;
@@ -133,8 +145,12 @@
             const msg = type === 'compile' ? 'Compile succeeded' : 'Upload succeeded';
             output('\n==' + msg + '==\n');
             // After upload the board resets and the port re-enumerates; refresh
-            // promptly so the saved port selection is restored right away.
-            if (type === 'upload') refreshRealPorts();
+            // promptly so the saved port selection is restored right away,
+            // and bring back any monitor the upload's port grab closed.
+            if (type === 'upload') {
+                refreshRealPorts();
+                reopenAutoReopenMonitors(1500);
+            }
         } else if (func === 'operateEndError') {
             hideLoader();
             const type = args[0];
@@ -304,6 +320,36 @@
         };
     }
     installServerWsSerial();
+
+    // Reopen monitors the server force-closed (page handoff / upload) once
+    // the coding view is visible again or the upload that stole the port
+    // finished. The port re-enumerates briefly after an upload, so give it
+    // a moment there.
+    function reopenAutoReopenMonitors(delayMs) {
+        const t = Mixly.mainStatusBarTabs;
+        if (!t || typeof t.keys !== 'function') return;
+        const reopen = () => {
+            for (const id of [...t.keys()]) {
+                try {
+                    const sb = t.getStatusBarById(id);
+                    const s = sb?.getSerial?.();
+                    if (s && s.__serverWs && s.__autoReopen && !s.isOpened()) {
+                        s.__autoReopen = false;
+                        sb.open().catch(() => {});
+                    }
+                } catch (e) { /* next tab */ }
+            }
+        };
+        if (delayMs) setTimeout(reopen, delayMs); else reopen();
+    }
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reopenAutoReopenMonitors(300);
+    });
+    // The desktop shell calls this when the coding view is re-attached —
+    // WebContentsView visibilityState does not reliably flip on attach, so
+    // the explicit signal is the primary trigger.
+    window.__aioscoutSignalVisible = () => reopenAutoReopenMonitors(300);
 
     // ── Compile & Upload ─────────────────────────────────────
     async function uploadModel() {

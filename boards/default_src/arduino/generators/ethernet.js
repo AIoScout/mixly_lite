@@ -1320,7 +1320,7 @@ export const weather_seniverse_city_weather = function () {
 
     Blockly.Arduino.definitions_['include_ESP8266_Seniverse'] = '#include <ESP8266_Seniverse.h>';
 
-    Blockly.Arduino.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+    Blockly.Arduino.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
 
     switch (api) {
     case 'weather/now':

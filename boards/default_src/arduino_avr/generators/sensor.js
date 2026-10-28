@@ -618,7 +618,7 @@ export const Arduino_keypad_4_4_start = function (_, generator) {
     generator.definitions_['var_keypadstart4' + text_keypad_name] = 'byte ' + text_keypad_name + '_rowPins[' + text_keypad_name + '_ROWS] = ' + text_keypad_row;
     generator.definitions_['var_keypadstart5' + text_keypad_name] = 'byte ' + text_keypad_name + '_colPins[' + text_keypad_name + '_COLS] = ' + text_keypad_col;
     generator.definitions_['var_keypadstart6' + text_keypad_name] = 'Keypad ' + text_keypad_name + ' = Keypad(makeKeymap(' + text_keypad_name + '_hexaKeys), ' + text_keypad_name + '_rowPins, ' + text_keypad_name + '_colPins, ' + text_keypad_name + '_ROWS, ' + text_keypad_name + '_COLS);';
-    generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+    generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
     var code = '';
     return code;
 }

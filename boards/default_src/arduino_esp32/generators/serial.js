@@ -5,6 +5,6 @@ export const serial_HardwareSerial = function (_, generator) {
     generator.definitions_['include_HardwareSerial'] = '#include <HardwareSerial.h>';
     var RX = generator.valueToCode(this, 'RX', generator.ORDER_ATOMIC);
     var TX = generator.valueToCode(this, 'TX', generator.ORDER_ATOMIC);
-    generator.setups_['setup_serial_' + serial_select] = '' + serial_select + '.begin(' + content + ',SERIAL_8N1,' + RX + ',' + TX + ');';
+    generator.setups_begin_['setup_serial_' + serial_select] = '' + serial_select + '.begin(' + content + ',SERIAL_8N1,' + RX + ',' + TX + ');';
     return '';
 };

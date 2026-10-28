@@ -17,7 +17,7 @@ export const blynk_smartconfig = function (_, generator) {
     let board_type = JSFuncs.getPlatform();
     generator.definitions_['define_BLYNK_PRINT'] = '#define BLYNK_PRINT Serial';
     generator.definitions_['var_declare_auth_key'] = 'char auth[] = ' + auth_key + ';';
-    generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+    generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
     generator.setups_['setup_smartconfig'] = 'WiFi.mode(WIFI_STA);\n'
         + '  int cnt = 0;\n'
         + '  while (WiFi.status() != WL_CONNECTED) {\n'
@@ -68,7 +68,7 @@ export const blynk_server = function (_, generator) {
         generator.definitions_['include_BlynkSimpleEsp8266'] = '#include <BlynkSimpleShieldEsp8266.h>';
         generator.definitions_['define_BLYNK_PRINT'] = '#define ESP8266_BAUD 115200';
         generator.definitions_['var_declare_ESP8266'] = 'ESP8266 wifi(&Serial);';
-        generator.setups_['setup_serial_Serial'] = 'Serial.begin(115200);';
+        generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(115200);';
         generator.setups_['delay_10_1'] = 'delay(10);';
         generator.setups_['wifi.setOprToStation'] = 'wifi.setOprToStation(2, 2);';
         generator.setups_['delay_10_2'] = 'delay(10);';
@@ -83,14 +83,14 @@ export const blynk_server = function (_, generator) {
     if (board_type.match(RegExp(/ESP8266/))) {
         generator.definitions_['include_ESP8266WiFi'] = '#include <ESP8266WiFi.h>';
         generator.definitions_['include_BlynkSimpleEsp8266'] = '#include <BlynkSimpleEsp8266.h>';
-        generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+        generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
         generator.setups_['setup_Blynk.begin'] = ' Blynk.begin(auth, ssid, pass,' + server_add + ',8080);';
     }
     else if (board_type.match(RegExp(/ESP32/))) {
         generator.definitions_['include_WiFi'] = '#include <WiFi.h>';
         generator.definitions_['include_WiFiClient'] = '#include <WiFiClient.h>';
         generator.definitions_['include_BlynkSimpleEsp32'] = '#include <BlynkSimpleEsp32.h>';
-        generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+        generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
         generator.setups_['setup_Blynk.begin'] = 'Blynk.begin(auth, ssid, pass,' + server_add + ',8080);';
     }
     let code = "Blynk.run();\n";
@@ -105,7 +105,7 @@ export const blynk_usb_server = function (_, generator) {
     generator.definitions_['var_declare_SoftwareSerial'] = 'SoftwareSerial DebugSerial(2, 3);';
     let auth_key = generator.valueToCode(this, 'auth_key', generator.ORDER_ATOMIC);
     generator.definitions_['var_declare_auth_key'] = 'char auth[] = ' + auth_key + ';';
-    generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+    generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
     generator.setups_['setup_Blynk.begin'] = 'Blynk.begin(Serial, auth);';
     generator.setups_['setup_DebugSerial'] = 'DebugSerial.begin(9600);';
     let code = "Blynk.run();\n";
@@ -561,7 +561,7 @@ export const blynk_AP_config = function (_, generator) {
     generator.definitions_['include_WiFiManager'] = '#include <WiFiManager.h>';
     generator.definitions_['var_declare_WiFiServer'] = 'WiFiServer server(80);';
     generator.definitions_['var_declare_auth_key'] = 'char auth[] = ' + auth_key + ';';
-    generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+    generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
     generator.setups_['setup_WiFiManager'] = 'WiFiManager wifiManager;';
     generator.setups_['setup_wifiManagerautoConnect'] = 'wifiManager.autoConnect("Blynk");';
     generator.setups_['setup_server.begin'] = 'Serial.println("Connected.");\n  server.begin();';
@@ -593,7 +593,7 @@ export const blynk_AP_config_2 = function (_, generator) {
         + '  Serial.println("Should save config");\n'
         + '  shouldSaveConfig = true;\n'
         + '}';
-    generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+    generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
     generator.setups_['otasetup1'] = 'Serial.println("mounting FS...");\n'
         + ' if (SPIFFS.begin()){\n'
         + '    Serial.println("mounted file system");\n'
@@ -699,7 +699,7 @@ export const blynk_esp32_ble = function (_, generator) {
     generator.definitions_['include_BLEDevice'] = '#include <BLEDevice.h>';
     generator.definitions_['include_BLEServer'] = '#include <BLEServer.h>\n';
     generator.definitions_['var_declare_auth_key'] = 'char auth[] = ' + auth + ';';
-    generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+    generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
     generator.setups_['setup_Blynk.begin'] = 'Serial.println("Waiting for connections...");\n'
         + '  Blynk.setDeviceName(' + name + ');\n'
         + '  Blynk.begin(auth);\n';
@@ -715,7 +715,7 @@ export const blynk_esp32_Bluetooth = function (_, generator) {
     generator.definitions_['define_BLYNK_USE_DIRECT_CONNECT'] = '#define BLYNK_USE_DIRECT_CONNECT';
     generator.definitions_['include_BlynkSimpleEsp32_BT'] = '#include <BlynkSimpleEsp32_BT.h>\n';
     generator.definitions_['var_declare_auth_key'] = 'char auth[] = ' + auth + ';';
-    generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+    generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
     generator.setups_['setup_Blynk.begin'] = 'Serial.println("Waiting for connections...");\n'
         + '  Blynk.setDeviceName(' + name + ');\n'
         + '  Blynk.begin(auth);\n';
@@ -733,13 +733,13 @@ export const arduino_blynk_bluetooth = function (_, generator) {
     generator.definitions_['include_BlynkSimpleSerialBLE'] = '#include <BlynkSimpleSerialBLE.h>';
     generator.definitions_['define_auth'] = 'char auth[] = ' + auth + ';';
     if (RX != 0 || TX != 1) {
-        generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+        generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
         generator.definitions_['var_declare_SoftwareSerial'] = 'SoftwareSerial SerialBLE(' + RX + ', ' + TX + ');';
         generator.setups_['setup_SerialBLE_begin'] = 'SerialBLE.begin(9600);';
         generator.setups_['setup_Blynk.begin'] = 'Blynk.begin(SerialBLE, auth);';
     }
     else {
-        generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+        generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
         generator.setups_['setup_Blynk.begin'] = 'Blynk.begin(Serial, auth);';
     }
     generator.setups_['setup_Serial.println'] = 'Serial.println("Waiting for connections...");';

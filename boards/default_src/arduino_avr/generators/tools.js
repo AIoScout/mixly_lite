@@ -27,7 +27,7 @@ export const folding_block = function (_, generator) {
 
 export const IICSCAN = function (_, generator) {
     generator.definitions_['include_WIRE'] = '#include <Wire.h>';
-    generator.setups_['setup_serial_Serial'] = 'Serial.begin(9600);';
+    generator.setups_begin_['setup_serial_Serial'] = 'Serial.begin(9600);';
     generator.setups_['setup_wire_begin'] = 'Wire.begin();';
     generator.setups_['setup_Serial.println("I2C Scanner")'] = 'Serial.println("I2C Scanner");';
     var code = 'byte error, address;\n'
