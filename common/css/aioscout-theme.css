@@ -206,6 +206,9 @@ html[data-bs-theme=dark] body ul.layui-nav[m-id] select + .select2 > .selection 
     border: 1px solid var(--as-hairline) !important;
     border-radius: 0 !important;
     height: 26px;
+    /* select2 never sets this; without it the absolute arrow anchors to a
+       distant ancestor and drifts away once the box is narrower than it */
+    position: relative;
 }
 
 html[data-bs-theme=light] body ul.layui-nav[m-id] select + .select2 > .selection > .select2-selection:hover,
@@ -218,6 +221,9 @@ html[data-bs-theme=dark] body ul.layui-nav[m-id] .select2-selection__rendered {
     color: var(--as-ink) !important;
     font-size: 13px;
     font-weight: 600;
+    flex: 1;
+    min-width: 0;
+    padding-right: 22px;
 }
 
 html[data-bs-theme=light] body ul.layui-nav[m-id] .select2-selection__arrow b,
@@ -628,6 +634,7 @@ html[data-bs-theme=dark] body .select2-container--default .select2-selection--si
     background-color: var(--as-canvas);
     border: 1px solid var(--as-hairline);
     border-radius: 0;
+    position: relative;
 }
 
 html[data-bs-theme=light] body .select2-container--default .select2-selection--single .select2-selection__rendered,
@@ -774,7 +781,6 @@ html[data-bs-theme=dark] body ul.layui-nav[m-id] select + .select2 > .selection 
 html[data-bs-theme=light] body ul.layui-nav[m-id] .select2-selection__rendered,
 html[data-bs-theme=dark] body ul.layui-nav[m-id] .select2-selection__rendered {
     line-height: 1 !important;
-    margin-right: 18px;
 }
 
 /* editor tab chip: same band height, buttons 22px inside */
