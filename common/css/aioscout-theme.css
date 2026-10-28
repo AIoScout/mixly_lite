@@ -1,0 +1,708 @@
+/* ─────────────────────────────────────────────────────────────
+   AIoScout theme skin for the Mixly editor chrome.
+   Tokens follow design-guideline/DESIGN.md: Inter, ink #1a1c1c,
+   body #525252, mute #5e5e5e, hairline #d8d9d8, canvas #ffffff,
+   canvas-soft #f9f9f8, panel #f3f4f3, accent-orange #f58331,
+   accent-purple #5b5ba8 (light) / #9a9ade (dark). Dark surfaces:
+   canvas #191b1e / canvas-soft #101214 / hairline #33363a /
+   ink #f2f2f0 / body #b6b6b2 / mute #8f8f8a. Rectangles (0px
+   radius), no shadows — depth comes from surface alternation.
+
+   This file is imported LAST in main.css. Mixly's runtime templates
+   inject <style> blocks after it, so template-scoped rules here
+   carry an extra `body` type selector to stay ahead on specificity.
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Inter (variable, latin subset; CJK falls back to system) ── */
+@font-face {
+    font-family: 'Inter';
+    src: url('../font/InterVariable.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ── Token layer ──────────────────────────────────────────── */
+:root {
+    --as-orange: #f58331;
+    --as-orange-soft: rgba(245, 131, 49, 0.12);
+    --as-purple: #5b5ba8;
+    --as-ink: #1a1c1c;
+    --as-body: #525252;
+    --as-mute: #5e5e5e;
+    --as-subtle: #a8a29e;
+    --as-hairline: #d8d9d8;
+    --as-rule: #e2e2e2;
+    --as-canvas: #ffffff;
+    --as-canvas-soft: #f9f9f8;
+    --as-panel: #f3f4f3;
+    --as-primary: #1a1c1c;
+    --as-on-primary: #ffffff;
+    --as-hover: rgba(0, 0, 0, 0.06);
+}
+
+html[data-bs-theme=dark]:root {
+    --as-purple: #9a9ade;
+    --as-ink: #f2f2f0;
+    --as-body: #b6b6b2;
+    --as-mute: #8f8f8a;
+    --as-subtle: #6e6e69;
+    --as-hairline: #33363a;
+    --as-rule: #2a2d31;
+    --as-canvas: #191b1e;
+    --as-canvas-soft: #101214;
+    --as-panel: #202327;
+    --as-primary: #f2f2f0;
+    --as-on-primary: #101214;
+    --as-hover: rgba(255, 255, 255, 0.07);
+}
+
+/* Remap Mixly's own accents so every var() consumer flips with us.
+   The app colors feed solid surfaces with white text baked in, so
+   they stay dark-ish in both themes; per-component rules below set
+   the proper light chrome. */
+:root,
+html[data-bs-theme=light]:root,
+html[data-bs-theme=dark]:root {
+    --app-light-color: var(--as-ink);
+    --app-dark-color: #2a2d31;
+    --theme-color: var(--as-ink);
+    --theme-selected-color: rgba(245, 131, 49, 0.35);
+    --theme-highlight-color: var(--as-orange);
+    --lay-color-primary: var(--as-ink);
+    --lay-color-primary-hover: #000000;
+    --lay-color-primary-active: var(--as-orange);
+}
+
+/* ── Base typography + surfaces ───────────────────────────── */
+html {
+    font-family: 'Inter', 'Helvetica Neue', Helvetica, 'PingFang SC',
+        'Microsoft YaHei', sans-serif;
+}
+
+html[data-bs-theme=light],
+html[data-bs-theme=light] > body,
+html[data-bs-theme=light] body .page-item {
+    background-color: var(--as-canvas-soft) !important;
+}
+
+html[data-bs-theme=dark],
+html[data-bs-theme=dark] > body,
+html[data-bs-theme=dark] body .page-item {
+    background-color: var(--as-canvas-soft) !important;
+}
+
+::selection {
+    background: var(--as-orange-soft);
+}
+
+/* ── Top nav (toolbar under the shell topbar) ─────────────── */
+/* White canvas band, ink text, hairline bottom — mirrors the
+   desktop shell's topbar. Template rules force #fff text with
+   !important; the extra `body` keeps our rules ahead. */
+html[data-bs-theme=light] body ul.layui-nav[m-id],
+html[data-bs-theme=dark] body ul.layui-nav[m-id] {
+    background-color: var(--as-canvas) !important;
+    border-bottom: 1px solid var(--as-hairline);
+    color: var(--as-ink) !important;
+    box-shadow: none;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] button,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] button {
+    color: var(--as-body) !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] button:hover,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] button:hover {
+    color: var(--as-ink) !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] button:active,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] button:active {
+    border: 1px solid var(--as-orange) !important;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] button > a,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] button > a {
+    color: inherit !important;
+}
+
+/* dropdown menus opened from the nav */
+html[data-bs-theme=light] body ul.layui-nav[m-id] .layui-nav-child,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .layui-nav-child {
+    background-color: var(--as-canvas);
+    border: 1px solid var(--as-hairline);
+    border-radius: 0;
+    box-shadow: none;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] .layui-nav-item dd > a,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .layui-nav-item dd > a {
+    color: var(--as-body);
+    border-radius: 0;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] .layui-nav-item dd > a:hover,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .layui-nav-item dd > a:hover {
+    background-color: var(--as-panel);
+    color: var(--as-ink);
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] hr,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] hr {
+    border-bottom: 1px solid var(--as-hairline) !important;
+}
+
+/* editor tab cluster (代码/上传 group) — a bordered panel chip */
+html[data-bs-theme=light] body ul.layui-nav[m-id] > .editor-btn-container,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] > .editor-btn-container {
+    background-color: var(--as-canvas);
+    border: 1px solid var(--as-hairline);
+    border-radius: 0;
+    box-shadow: none;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] > .editor-btn-container:not(.empty) .copyright,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] > .editor-btn-container:not(.empty) .copyright {
+    color: var(--as-mute) !important;
+    font-size: 12px;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] > .editor-btn-container .group > button,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] > .editor-btn-container .group > button {
+    color: var(--as-mute);
+    border-radius: 0;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] > .editor-btn-container .group > button:hover,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] > .editor-btn-container .group > button:hover {
+    color: var(--as-ink);
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] > .editor-btn-container .group > .line,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] > .editor-btn-container .group > .line {
+    background-color: var(--as-hairline);
+}
+
+/* active editor tab (代码 selected) — solid ink like the primary button */
+html[data-bs-theme=light] body ul.layui-nav[m-id] .self-adaption-btn,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .self-adaption-btn {
+    background-color: var(--as-primary) !important;
+    border-color: var(--as-primary) !important;
+    color: var(--as-on-primary) !important;
+    box-shadow: none !important;
+}
+
+/* ── Board/port selects in the nav (select2) ──────────────── */
+html[data-bs-theme=light] body ul.layui-nav[m-id] select + .select2 > .selection > .select2-selection,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] select + .select2 > .selection > .select2-selection {
+    background-color: var(--as-canvas) !important;
+    border: 1px solid var(--as-hairline) !important;
+    border-radius: 0 !important;
+    height: 26px;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] select + .select2 > .selection > .select2-selection:hover,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] select + .select2 > .selection > .select2-selection:hover {
+    border-color: var(--as-ink) !important;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] .select2-selection__rendered,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .select2-selection__rendered {
+    color: var(--as-ink) !important;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] .select2-selection__arrow b,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .select2-selection__arrow b {
+    border-color: var(--as-body) transparent transparent transparent !important;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] .select2-container--open .select2-selection__arrow b,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .select2-container--open .select2-selection__arrow b {
+    border-color: transparent transparent var(--as-body) transparent !important;
+}
+
+/* ── SmartCar action buttons (Save/Open/Compile/Upload/Monitor) ── */
+/* Upload is the primary CTA (solid ink, orange hover); the rest
+   are outline buttons. Monitor shows the warm state while open. */
+html[data-bs-theme=light] body ul.layui-nav[m-id] .layui-btn.mixly-nav,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .layui-btn.mixly-nav {
+    background-color: transparent !important;
+    border: 1px solid var(--as-hairline) !important;
+    color: var(--as-body) !important;
+    border-radius: 0;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] .layui-btn.mixly-nav:hover,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] .layui-btn.mixly-nav:hover {
+    background-color: var(--as-canvas) !important;
+    border-color: var(--as-ink) !important;
+    color: var(--as-ink) !important;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] #smartcar-upload-btn,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] #smartcar-upload-btn {
+    background-color: var(--as-primary) !important;
+    border-color: var(--as-primary) !important;
+    color: var(--as-on-primary) !important;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] #smartcar-upload-btn:hover,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] #smartcar-upload-btn:hover {
+    background-color: var(--as-orange) !important;
+    border-color: var(--as-orange) !important;
+    color: #ffffff !important;
+}
+
+html[data-bs-theme=light] body ul.layui-nav[m-id] #smartcar-monitor-btn.layui-btn-warm,
+html[data-bs-theme=dark] body ul.layui-nav[m-id] #smartcar-monitor-btn.layui-btn-warm {
+    background-color: var(--as-orange) !important;
+    border-color: var(--as-orange) !important;
+    color: #ffffff !important;
+}
+
+/* connection pill — rectangle, Inter */
+html[data-bs-theme=light] body .smartcar-status-pill,
+html[data-bs-theme=dark] body .smartcar-status-pill {
+    border-radius: 0;
+    font-weight: 600;
+    border: 1px solid currentColor;
+    background-color: transparent;
+}
+
+/* ── Blockly toolbox ──────────────────────────────────────── */
+html[data-bs-theme=light] body .blocklyToolboxDiv,
+html[data-bs-theme=dark] body .blocklyToolboxDiv {
+    background-color: var(--as-canvas) !important;
+    border-right: 1px solid var(--as-hairline);
+    font-family: 'Inter', 'Helvetica Neue', Helvetica, 'PingFang SC',
+        'Microsoft YaHei', sans-serif;
+}
+
+html[data-bs-theme=light] body .blocklyTreeLabel,
+html[data-bs-theme=dark] body .blocklyTreeLabel {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+html[data-bs-theme=light] body .injectionDiv.classic-theme .blocklyTreeRow .blocklyTreeLabel,
+html[data-bs-theme=dark] body .injectionDiv.dark-theme .blocklyTreeRow .blocklyTreeLabel {
+    color: var(--as-body) !important;
+}
+
+html[data-bs-theme=light] body .injectionDiv.dark-theme .blocklyTreeRow .blocklyTreeLabel,
+html[data-bs-theme=light] body .injectionDiv.classic-theme .blocklyTreeRow.blocklyTreeSelected .blocklyTreeLabel,
+html[data-bs-theme=dark] body .injectionDiv.classic-theme .blocklyTreeRow .blocklyTreeLabel,
+html[data-bs-theme=dark] body .injectionDiv.dark-theme .blocklyTreeRow.blocklyTreeSelected .blocklyTreeLabel {
+    color: var(--as-ink) !important;
+}
+
+html[data-bs-theme=light] body .blocklyTreeRow:hover,
+html[data-bs-theme=dark] body .blocklyTreeRow:hover {
+    background-color: var(--as-hover);
+}
+
+/* selected category: ink left rule + orange marker, flat fill */
+html[data-bs-theme=light] body .blocklyTreeRow.blocklyTreeSelected,
+html[data-bs-theme=dark] body .blocklyTreeRow.blocklyTreeSelected {
+    background-color: var(--as-canvas-soft) !important;
+    box-shadow: inset 3px 0 0 0 var(--as-orange);
+}
+
+/* workspace surface */
+html[data-bs-theme=light] body .blocklyMainBackground,
+html[data-bs-theme=light] body .blocklySvg {
+    fill: var(--as-canvas-soft);
+}
+
+html[data-bs-theme=dark] body .blocklyMainBackground,
+html[data-bs-theme=dark] body .blocklySvg {
+    fill: var(--as-canvas-soft);
+}
+
+html[data-bs-theme=light] body .blocklyGridPattern line,
+html[data-bs-theme=light] body .blocklyGridPattern path {
+    stroke: rgba(26, 28, 28, 0.06);
+}
+
+html[data-bs-theme=dark] body .blocklyGridPattern line,
+html[data-bs-theme=dark] body .blocklyGridPattern path {
+    stroke: rgba(242, 242, 240, 0.06);
+}
+
+/* flyout */
+html[data-bs-theme=light] body .blocklyFlyoutBackground {
+    fill: var(--as-canvas);
+}
+
+html[data-bs-theme=dark] body .blocklyFlyoutBackground {
+    fill: var(--as-canvas);
+}
+
+html[data-bs-theme=light] body rect.blocklyFlyoutBackground,
+html[data-bs-theme=dark] body rect.blocklyFlyoutBackground {
+    stroke: var(--as-hairline);
+}
+
+/* ── Statusbar (bottom tab strip + output panels) ─────────── */
+html[data-bs-theme=light] body div.chrome-tabs[m-id],
+html[data-bs-theme=dark] body div.chrome-tabs[m-id] {
+    background-color: var(--as-canvas) !important;
+    border-color: var(--as-hairline) !important;
+}
+
+html[data-bs-theme=light] body .statusbars,
+html[data-bs-theme=dark] body .statusbars {
+    color: var(--as-body);
+}
+
+html[data-bs-theme=light] body .chrome-tab .chrome-tab-title,
+html[data-bs-theme=dark] body .chrome-tab .chrome-tab-title {
+    color: var(--as-mute);
+    font-size: 12px;
+}
+
+html[data-bs-theme=light] body .chrome-tab[active] .chrome-tab-title,
+html[data-bs-theme=dark] body .chrome-tab[active] .chrome-tab-title {
+    color: var(--as-ink);
+    font-weight: 600;
+}
+
+/* tab shapes: flat rectangles instead of chrome curves */
+html[data-bs-theme=light] body .chrome-tab .chrome-tab-background,
+html[data-bs-theme=dark] body .chrome-tab .chrome-tab-background {
+    background-color: var(--as-canvas) !important;
+    border-radius: 0 !important;
+    border: none;
+    box-shadow: none !important;
+}
+
+html[data-bs-theme=light] body .chrome-tab .chrome-tab-background > div,
+html[data-bs-theme=dark] body .chrome-tab .chrome-tab-background > div {
+    border-radius: 0 !important;
+    background: none !important;
+}
+
+html[data-bs-theme=light] body .chrome-tab[active] .chrome-tab-background,
+html[data-bs-theme=dark] body .chrome-tab[active] .chrome-tab-background {
+    background-color: var(--as-canvas-soft) !important;
+    border-bottom: 2px solid var(--as-orange);
+}
+
+html[data-bs-theme=light] body .chrome-tab:not([active]):hover .chrome-tab-background,
+html[data-bs-theme=dark] body .chrome-tab:not([active]):hover .chrome-tab-background {
+    background-color: var(--as-panel) !important;
+}
+
+/* + / × small buttons in the strip */
+html[data-bs-theme=light] body .statusbar-btn,
+html[data-bs-theme=dark] body .statusbar-btn {
+    background-color: transparent !important;
+    color: var(--as-body) !important;
+    border-radius: 0;
+}
+
+html[data-bs-theme=light] body .statusbar-btn:hover,
+html[data-bs-theme=dark] body .statusbar-btn:hover {
+    color: var(--as-ink) !important;
+    background-color: var(--as-hover) !important;
+}
+
+/* serial monitor settings chips */
+html[data-bs-theme=light] body .statusbars div[m-id] > .setting,
+html[data-bs-theme=dark] body .statusbars div[m-id] > .setting {
+    background-color: var(--as-canvas) !important;
+}
+
+/* ── Footerbar (bottom-most strip) ────────────────────────── */
+html[data-bs-theme=light] body div[m-id] > .mixly-footerbar,
+html[data-bs-theme=dark] body div[m-id] > .mixly-footerbar {
+    background-color: var(--as-canvas) !important;
+    border-top: 1px solid var(--as-hairline);
+}
+
+html[data-bs-theme=light] body .mixly-footerbar .footerbar-item,
+html[data-bs-theme=dark] body .mixly-footerbar .footerbar-item {
+    color: var(--as-mute);
+    font-size: 12px;
+}
+
+html[data-bs-theme=light] body .mixly-footerbar .footerbar-item > div > a,
+html[data-bs-theme=dark] body .mixly-footerbar .footerbar-item > div > a,
+html[data-bs-theme=light] body .mixly-footerbar .footerbar-item p,
+html[data-bs-theme=dark] body .mixly-footerbar .footerbar-item p {
+    color: var(--as-mute);
+}
+
+html[data-bs-theme=light] body .mixly-footerbar .footerbar-item button,
+html[data-bs-theme=dark] body .mixly-footerbar .footerbar-item button {
+    border-radius: 0;
+}
+
+html[data-bs-theme=light] body .mixly-footerbar .footerbar-item button > a,
+html[data-bs-theme=dark] body .mixly-footerbar .footerbar-item button > a {
+    color: var(--as-mute);
+}
+
+html[data-bs-theme=light] body .mixly-footerbar .footerbar-item button:hover > a,
+html[data-bs-theme=dark] body .mixly-footerbar .footerbar-item button:hover > a {
+    color: var(--as-ink);
+}
+
+/* ── layui buttons (dialogs, loaders, everywhere else) ────── */
+html[data-bs-theme=light] body .layui-btn:not(.layui-btn-primary):not(.layui-btn-disabled):not(.layui-btn-warm):not(.layui-btn-danger),
+html[data-bs-theme=dark] body .layui-btn:not(.layui-btn-primary):not(.layui-btn-disabled):not(.layui-btn-warm):not(.layui-btn-danger) {
+    background-color: var(--as-primary) !important;
+    border-color: var(--as-primary) !important;
+    color: var(--as-on-primary) !important;
+    border-radius: 0;
+}
+
+html[data-bs-theme=light] body .layui-btn:not(.layui-btn-primary):not(.layui-btn-disabled):not(.layui-btn-warm):not(.layui-btn-danger):hover,
+html[data-bs-theme=dark] body .layui-btn:not(.layui-btn-primary):not(.layui-btn-disabled):not(.layui-btn-warm):not(.layui-btn-danger):hover {
+    background-color: var(--as-orange) !important;
+    border-color: var(--as-orange) !important;
+    color: #ffffff !important;
+}
+
+html[data-bs-theme=light] body .layui-btn.layui-btn-primary,
+html[data-bs-theme=dark] body .layui-btn.layui-btn-primary {
+    background-color: transparent !important;
+    border: 1px solid var(--as-hairline) !important;
+    border-radius: 0;
+}
+
+/* outline buttons outside the nav get ink text */
+html[data-bs-theme=light] body .layui-layer .layui-btn.layui-btn-primary,
+html[data-bs-theme=dark] body .layui-layer .layui-btn.layui-btn-primary,
+html[data-bs-theme=light] body #mixly-loader-div .layui-btn.layui-btn-primary,
+html[data-bs-theme=dark] body #mixly-loader-div .layui-btn.layui-btn-primary,
+html[data-bs-theme=light] body #mixly-selector-div .layui-btn.layui-btn-primary,
+html[data-bs-theme=dark] body #mixly-selector-div .layui-btn.layui-btn-primary,
+html[data-bs-theme=light] body .mixly-footerbar .layui-btn.layui-btn-primary,
+html[data-bs-theme=dark] body .mixly-footerbar .layui-btn.layui-btn-primary {
+    color: var(--as-body) !important;
+}
+
+html[data-bs-theme=light] body .layui-layer .layui-btn.layui-btn-primary:hover,
+html[data-bs-theme=dark] body .layui-layer .layui-btn.layui-btn-primary:hover,
+html[data-bs-theme=light] body #mixly-loader-div .layui-btn.layui-btn-primary:hover,
+html[data-bs-theme=dark] body #mixly-loader-div .layui-btn.layui-btn-primary:hover,
+html[data-bs-theme=light] body #mixly-selector-div .layui-btn.layui-btn-primary:hover,
+html[data-bs-theme=dark] body #mixly-selector-div .layui-btn.layui-btn-primary:hover {
+    background-color: var(--as-primary) !important;
+    border-color: var(--as-primary) !important;
+    color: var(--as-on-primary) !important;
+}
+
+html[data-bs-theme=light] body .layui-btn.layui-btn-disabled,
+html[data-bs-theme=dark] body .layui-btn.layui-btn-disabled {
+    background-color: var(--as-panel) !important;
+    border-color: var(--as-hairline) !important;
+    color: var(--as-subtle) !important;
+    border-radius: 0;
+}
+
+/* warm = brand-orange highlight (Monitor while open, active states) */
+html[data-bs-theme=light] body .layui-btn.layui-btn-warm,
+html[data-bs-theme=dark] body .layui-btn.layui-btn-warm {
+    background-color: var(--as-orange) !important;
+    border-color: var(--as-orange) !important;
+    color: #ffffff !important;
+    border-radius: 0;
+}
+
+/* ── layui layers / dialogs ───────────────────────────────── */
+html[data-bs-theme=light] body .layui-layer,
+html[data-bs-theme=dark] body .layui-layer {
+    border-radius: 0;
+    box-shadow: none !important;
+    border: 1px solid var(--as-hairline);
+    background-color: var(--as-canvas) !important;
+}
+
+html[data-bs-theme=light] body .layui-layer .layui-layer-title,
+html[data-bs-theme=dark] body .layui-layer .layui-layer-title {
+    background-color: var(--as-canvas) !important;
+    color: var(--as-ink) !important;
+    border-bottom: 1px solid var(--as-hairline) !important;
+    border-radius: 0 !important;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+html[data-bs-theme=light] body .layui-layer .layui-layer-content,
+html[data-bs-theme=dark] body .layui-layer .layui-layer-content {
+    color: var(--as-body);
+}
+
+html[data-bs-theme=light] body .layui-layer .layui-layer-btn a,
+html[data-bs-theme=dark] body .layui-layer .layui-layer-btn a {
+    border-radius: 0;
+    border-color: var(--as-hairline);
+}
+
+html[data-bs-theme=light] body .layui-layer .layui-layer-btn .layui-layer-btn0,
+html[data-bs-theme=dark] body .layui-layer .layui-layer-btn .layui-layer-btn0 {
+    background-color: var(--as-primary);
+    border-color: var(--as-primary);
+    color: var(--as-on-primary);
+}
+
+/* loading overlay + selector dialog */
+html[data-bs-theme=light] body #mixly-loader-div,
+html[data-bs-theme=dark] body #mixly-loader-div,
+html[data-bs-theme=light] body #mixly-selector-div,
+html[data-bs-theme=dark] body #mixly-selector-div {
+    background-color: var(--as-canvas) !important;
+}
+
+html[data-bs-theme=light] body #mixly-loader-div,
+html[data-bs-theme=dark] body #mixly-loader-div {
+    font-family: 'Inter', 'Helvetica Neue', Helvetica, 'PingFang SC',
+        'Microsoft YaHei', sans-serif;
+}
+
+/* tooltips */
+html[data-bs-theme=light] body .layui-layer-tips .layui-layer-content,
+html[data-bs-theme=dark] body .layui-layer-tips .layui-layer-content {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+html[data-bs-theme=light] body .layui-layer-tips .layui-layer-content {
+    background-color: var(--as-ink);
+    color: var(--as-on-primary);
+}
+
+html[data-bs-theme=dark] body .layui-layer-tips .layui-layer-content {
+    background-color: #f2f2f0;
+    color: #1a1c1c;
+}
+
+html[data-bs-theme=light] body .layui-layer-tips i.layui-layer-TipsL {
+    border-left-color: var(--as-ink);
+}
+
+html[data-bs-theme=light] body .layui-layer-tips i.layui-layer-TipsR {
+    border-right-color: var(--as-ink);
+}
+
+html[data-bs-theme=light] body .layui-layer-tips i.layui-layer-TipsT {
+    border-top-color: var(--as-ink);
+}
+
+html[data-bs-theme=light] body .layui-layer-tips i.layui-layer-TipsB {
+    border-bottom-color: var(--as-ink);
+}
+
+html[data-bs-theme=dark] body .layui-layer-tips i.layui-layer-TipsL {
+    border-left-color: #f2f2f0;
+}
+
+html[data-bs-theme=dark] body .layui-layer-tips i.layui-layer-TipsR {
+    border-right-color: #f2f2f0;
+}
+
+html[data-bs-theme=dark] body .layui-layer-tips i.layui-layer-TipsT {
+    border-top-color: #f2f2f0;
+}
+
+html[data-bs-theme=dark] body .layui-layer-tips i.layui-layer-TipsB {
+    border-bottom-color: #f2f2f0;
+}
+
+/* ── select2 dropdowns (outside the nav) ──────────────────── */
+html[data-bs-theme=light] body .select2-container--default .select2-selection--single,
+html[data-bs-theme=dark] body .select2-container--default .select2-selection--single {
+    background-color: var(--as-canvas);
+    border: 1px solid var(--as-hairline);
+    border-radius: 0;
+}
+
+html[data-bs-theme=light] body .select2-container--default .select2-selection--single .select2-selection__rendered,
+html[data-bs-theme=dark] body .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: var(--as-ink);
+}
+
+html[data-bs-theme=light] body .select2-dropdown,
+html[data-bs-theme=dark] body .select2-dropdown {
+    background-color: var(--as-canvas);
+    border: 1px solid var(--as-hairline);
+    border-radius: 0;
+}
+
+html[data-bs-theme=light] body .select2-container--default .select2-results__option--highlighted[aria-selected],
+html[data-bs-theme=dark] body .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: var(--as-panel);
+    color: var(--as-ink);
+    border-radius: 0;
+}
+
+/* ── scrollbars ───────────────────────────────────────────── */
+html[data-bs-theme=light] body ::-webkit-scrollbar,
+html[data-bs-theme=dark] body ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+html[data-bs-theme=light] body ::-webkit-scrollbar-thumb,
+html[data-bs-theme=dark] body ::-webkit-scrollbar-thumb {
+    border-radius: 0;
+}
+
+html[data-bs-theme=light] body ::-webkit-scrollbar-thumb {
+    background-color: var(--as-hairline);
+}
+
+html[data-bs-theme=dark] body ::-webkit-scrollbar-thumb {
+    background-color: #3a3d42;
+}
+
+html[data-bs-theme=light] body ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--as-subtle);
+}
+
+html[data-bs-theme=dark] body ::-webkit-scrollbar-thumb:hover {
+    background-color: #4a4d52;
+}
+
+html[data-bs-theme=light] body ::-webkit-scrollbar-track,
+html[data-bs-theme=dark] body ::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+/* ── Font propagation ─────────────────────────────────────── */
+/* layui.css and nav templates set explicit stacks on buttons,
+   dropdowns and form controls — re-point them at Inter. */
+html body button,
+html body input,
+html body select,
+html body textarea,
+html body .layui-btn,
+html body .layui-form-label,
+html body .layui-form-item,
+html body .select2,
+html body .select2-results,
+html body ul.layui-nav[m-id] .layui-nav-item dd,
+html body ul.layui-nav[m-id] > .editor-btn-container .copyright,
+html body .chrome-tab .chrome-tab-title,
+html body .mixly-footerbar,
+html body .statusbars,
+html body .layui-layer,
+html body .layui-layer-title,
+html body .layui-layer-content,
+html body .layui-layer-btn a {
+    font-family: 'Inter', 'Helvetica Neue', Helvetica, 'PingFang SC',
+        'Microsoft YaHei', sans-serif;
+}
