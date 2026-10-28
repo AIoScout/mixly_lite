@@ -123,6 +123,7 @@
                     sb.close().catch(() => {});
                 }
             } catch (e) { /* monitor tab gone */ }
+            updateMonitorBtnState();
         } else if (func === 'addValue' && args.length >= 1) {
             // Serial line from the server: [portName, line]. Feed the
             // native serial monitor tab when one is open for that port;
@@ -205,6 +206,7 @@
         } catch (e) {
             console.error('[SmartCar] parse ports error:', e);
         }
+        updateMonitorBtnState();
     }
 
     function updatePortSelector() {
@@ -350,6 +352,54 @@
     // WebContentsView visibilityState does not reliably flip on attach, so
     // the explicit signal is the primary trigger.
     window.__aioscoutSignalVisible = () => reopenAutoReopenMonitors(300);
+
+    // ── One-click serial monitor on the footer-selected port ────
+    // The native flow needs the statusbar "+" dropdown and its own port
+    // picker; the toolbar button below opens/closes the monitor for the
+    // port already selected at the top of the page.
+    async function ensureMonitorTab(port) {
+        const t = Mixly.mainStatusBarTabs;
+        let sb = t.getStatusBarById(port);
+        if (sb && sb.isInited && sb.isInited()) return sb;
+        if (!sb) await t.add('serial', port);
+        for (let i = 0; i < 20; i++) {
+            await new Promise(r => setTimeout(r, 300));
+            sb = t.getStatusBarById(port);
+            if (sb && sb.isInited && sb.isInited()) return sb;
+        }
+        return t.getStatusBarById(port);
+    }
+
+    async function toggleMonitor() {
+        const port = getSelectedPort();
+        if (!port || port === 'null' || port === 'undefined') {
+            alert(msgText('PLUGIN_SELECT_PORT_FIRST', 'Please select a serial port first'));
+            return;
+        }
+        const sb = await ensureMonitorTab(port);
+        if (!sb) return;
+        Mixly.mainStatusBarTabs.changeTo(port);
+        try {
+            if (sb.getSerial().isOpened()) {
+                await sb.close();
+            } else {
+                await sb.open();
+            }
+        } catch (e) { /* port vanished mid-toggle */ }
+        updateMonitorBtnState();
+    }
+
+    function updateMonitorBtnState() {
+        const btn = document.getElementById('smartcar-monitor-btn');
+        if (!btn) return;
+        const port = getSelectedPort();
+        const sb = port && window.Mixly && Mixly.mainStatusBarTabs
+            ? Mixly.mainStatusBarTabs.getStatusBarById(port) : null;
+        const open = !!(sb && sb.getSerial && sb.getSerial().isOpened && sb.getSerial().isOpened());
+        btn.classList.toggle('layui-btn-warm', open);
+        btn.title = open ? msgText('PLUGIN_MONITOR_CLOSE', 'Close serial monitor')
+                         : msgText('PLUGIN_MONITOR_OPEN', 'Open serial monitor for the selected port');
+    }
 
     // ── Compile & Upload ─────────────────────────────────────
     async function uploadModel() {
@@ -766,6 +816,17 @@
         container.appendChild(openBtn);
         container.appendChild(compileBtn);
         container.appendChild(uploadBtn);
+
+        // Serial monitor toggle — opens/closes the native monitor for the
+        // port selected in the footer, no extra port picking.
+        const monitorBtn = document.createElement('button');
+        monitorBtn.id = 'smartcar-monitor-btn';
+        monitorBtn.className = 'layui-btn layui-btn-xs layui-btn-primary mixly-nav';
+        monitorBtn.innerHTML = '<a class="icon-console">' + msgText('PLUGIN_MONITOR', 'Monitor') + '</a>';
+        monitorBtn.title = msgText('PLUGIN_MONITOR_OPEN', 'Open serial monitor for the selected port');
+        monitorBtn.onclick = () => { toggleMonitor().catch(() => {}); };
+        container.appendChild(monitorBtn);
+        updateMonitorBtnState();
 
         // Filename indicator (shows current file name)
         const filename = document.createElement('span');
