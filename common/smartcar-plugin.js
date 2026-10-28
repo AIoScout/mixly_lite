@@ -337,10 +337,11 @@
                     const s = sb?.getSerial?.();
                     if (s && s.__serverWs && s.__autoReopen && !s.isOpened()) {
                         s.__autoReopen = false;
-                        sb.open().catch(() => {});
+                        sb.open().catch(() => {}).finally?.(() => updateMonitorBtnState());
                     }
                 } catch (e) { /* next tab */ }
             }
+            updateMonitorBtnState();
         };
         if (delayMs) setTimeout(reopen, delayMs); else reopen();
     }
@@ -378,6 +379,9 @@
         }
         const sb = await ensureMonitorTab(port);
         if (!sb) return;
+        // show() unfolds the statusbar container (a collapsed bar leaves the
+        // monitor page active-but-invisible and its output gated off).
+        if (Mixly.mainStatusBarTabs.show) Mixly.mainStatusBarTabs.show();
         Mixly.mainStatusBarTabs.changeTo(port);
         try {
             if (sb.getSerial().isOpened()) {
