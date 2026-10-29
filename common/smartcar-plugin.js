@@ -771,6 +771,19 @@
         document.head.appendChild(style);
     }
 
+    // Mixly's license: modified builds must retain the software name and
+    // author information. The desktop shell hides the home button (which
+    // carries the name), so a permanent footer credit carries it instead.
+    function injectMixlyCredit() {
+        const bar = document.querySelector('.mixly-footerbar .footerbar-item:first-child');
+        if (!bar || document.getElementById('smartcar-mixly-credit')) return;
+        const credit = document.createElement('div');
+        credit.id = 'smartcar-mixly-credit';
+        credit.style.cssText = 'display:inline-flex;align-items:center;margin:0 5px;font-size:12px;opacity:.8;';
+        credit.textContent = 'Block Coding · Powered by Mixly (Mixly Team @ BNU)';
+        bar.appendChild(credit);
+    }
+
     function injectButtons() {
         const container = document.querySelector('.left-btn-container');
         if (!container) {
@@ -779,6 +792,8 @@
         }
 
         if (document.getElementById('smartcar-compile-btn')) return;
+
+        injectMixlyCredit();
 
         // Status indicator (dot + label pill)
         const status = document.createElement('span');
