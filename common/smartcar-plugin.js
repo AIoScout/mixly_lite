@@ -774,9 +774,16 @@
     // Mixly's license: modified builds must retain the software name and
     // author information. The desktop shell hides the home button (which
     // carries the name), so a permanent footer credit carries it instead.
-    function injectMixlyCredit() {
+    function injectMixlyCredit(attempt) {
+        // The footerbar mounts after the nav does; retry a few beats so the
+        // license credit is never silently dropped on a slow first load.
+        attempt = attempt || 0;
         const bar = document.querySelector('.mixly-footerbar .footerbar-item:first-child');
-        if (!bar || document.getElementById('smartcar-mixly-credit')) return;
+        if (document.getElementById('smartcar-mixly-credit')) return;
+        if (!bar) {
+            if (attempt < 40) setTimeout(() => injectMixlyCredit(attempt + 1), 500);
+            return;
+        }
         const credit = document.createElement('div');
         credit.id = 'smartcar-mixly-credit';
         credit.style.cssText = 'display:inline-flex;align-items:center;margin:0 5px;font-size:12px;opacity:.8;';
