@@ -915,6 +915,21 @@
                 icon: 'icon-play',
                 action: () => loadWorkshopProgram('/programs/road_sign_workshop.xml'),
             },
+            {
+                label: msgText('PLUGIN_TURNSTILE_HARDCODE', 'Turnstile startup demo'),
+                icon: 'icon-play',
+                action: () => loadWorkshopProgram('/programs/turnstile_hardcode_workshop.xml'),
+            },
+            {
+                label: msgText('PLUGIN_TURNSTILE_CAR', 'Turnstile car demo'),
+                icon: 'icon-play',
+                action: () => loadWorkshopProgram('/programs/turnstile_car_workshop.xml'),
+            },
+            {
+                label: msgText('PLUGIN_TURNSTILE_PLATE', 'Turnstile plate demo'),
+                icon: 'icon-play',
+                action: () => loadWorkshopProgram('/programs/turnstile_plate_workshop.xml'),
+            },
         ];
         const openBtn = document.createElement('button');
         openBtn.id = 'smartcar-open-btn';

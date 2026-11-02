@@ -433,8 +433,12 @@ export const smartcar_follow_line_until_stop = {
         this.appendDummyInput()
             .appendField(new Blockly.FieldDropdown([
                 [Blockly.Msg.SMARTCAR_STOP_ALL_BLACK || "all-black marker", "allblack"],
-                [Blockly.Msg.SMARTCAR_STOP_ALL_BLACK_OR_RFID || "all-black marker or RFID tag", "allblack_rfid"]
+                [Blockly.Msg.SMARTCAR_STOP_ALL_BLACK_OR_RFID || "all-black marker or RFID tag", "allblack_rfid"],
+                [Blockly.Msg.SMARTCAR_STOP_ULTRASONIC || "ultrasonic obstacle", "ultrasonic"]
             ]), "TRIGGER");
+        this.appendValueInput("DIST")
+            .setCheck(Number)
+            .appendField(Blockly.Msg.SMARTCAR_STOP_DISTANCE || "cm");
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
@@ -450,5 +454,144 @@ export const smartcar_wait_until_centered = {
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setTooltip(Blockly.Msg.SMARTCAR_WAIT_CENTERED_TOOLTIP || "Wait until the car is centered on the line again (after a turn). Also stops if a stop trigger fires. Use together with the follow-line-until block.");
+    }
+};
+
+// ============================================
+// OBSTACLE / RFID / LEFT-MOTOR / PLATE BLOCKS
+// ============================================
+
+export const smartcar_obstacle_wait_clear = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_OBSTACLE_WAIT || "wait until obstacle clears");
+        this.appendValueInput("RESUME_CM")
+            .setCheck(Number)
+            .setAlign(Blockly.inputs.Align.RIGHT)
+            .appendField(Blockly.Msg.SMARTCAR_OBSTACLE_RESUME || "resume beyond cm");
+        this.appendValueInput("TIMEOUT_S")
+            .setCheck(Number)
+            .setAlign(Blockly.inputs.Align.RIGHT)
+            .appendField(Blockly.Msg.SMARTCAR_OBSTACLE_TIMEOUT || "timeout s");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.SMARTCAR_OBSTACLE_WAIT_TOOLTIP || "Wait (car stopped) until the distance grows beyond the resume value, or the timeout elapses. Check distance roughly every 100 ms.");
+    }
+};
+
+export const smartcar_rfid_report_new_tag = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_RFID_REPORT || "report new RFID tag");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.SMARTCAR_RFID_REPORT_TOOLTIP || "Check the RFID reader once and print the tag UID to Serial when a new (different) tag appears. Call repeatedly, e.g. in the loop.");
+    }
+};
+
+export const smartcar_left_motor_run = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_LEFT_MOTOR || "left motor");
+        this.appendDummyInput()
+            .appendField(new Blockly.FieldDropdown([
+                [Blockly.Msg.SMARTCAR_CLOCKWISE || "clockwise", "cw"],
+                [Blockly.Msg.SMARTCAR_ANTICLOCKWISE || "anticlockwise", "acw"]
+            ]), "DIR");
+        this.appendValueInput("DUTY")
+            .setCheck(Number)
+            .appendField(Blockly.Msg.SMARTCAR_DUTY || "duty %");
+        this.appendValueInput("DURATION")
+            .setCheck(Number)
+            .appendField(Blockly.Msg.SMARTCAR_FOR_MS || "for ms");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.SMARTCAR_LEFT_MOTOR_TOOLTIP || "Run only the left motor in the given direction at a PWM duty percentage for the given time, then brake. The right motor stays stopped.");
+    }
+};
+
+export const smartcar_left_motor_sequence = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_LEFT_SEQUENCE || "left motor startup sequence");
+        this.appendValueInput("DUTY")
+            .setCheck(Number)
+            .setAlign(Blockly.inputs.Align.RIGHT)
+            .appendField(Blockly.Msg.SMARTCAR_DUTY || "duty %");
+        this.appendValueInput("CW_MS")
+            .setCheck(Number)
+            .setAlign(Blockly.inputs.Align.RIGHT)
+            .appendField(Blockly.Msg.SMARTCAR_CW_MS || "clockwise ms");
+        this.appendValueInput("PAUSE_MS")
+            .setCheck(Number)
+            .setAlign(Blockly.inputs.Align.RIGHT)
+            .appendField(Blockly.Msg.SMARTCAR_PAUSE_MS || "pause ms");
+        this.appendValueInput("ACW_MS")
+            .setCheck(Number)
+            .setAlign(Blockly.inputs.Align.RIGHT)
+            .appendField(Blockly.Msg.SMARTCAR_ACW_MS || "anticlockwise ms");
+        this.setInputsInline(false);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.SMARTCAR_LEFT_SEQUENCE_TOOLTIP || "The turnstile startup routine: clockwise, brake+pause, anticlockwise, brake — all on the left motor at one duty setting.");
+    }
+};
+
+export const smartcar_p4_plate_start_link = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_P4_PLATE_START || "P4 link start (licence plate)");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.SMARTCAR_P4_PLATE_START_TOOLTIP || "Open the UART link to the AI Eye (P4) board running the multi-plate firmware. Use in setup; add a serial block (115200 baud) to see detection logs.");
+    }
+};
+
+export const smartcar_p4_plate_update = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_P4_PLATE_UPDATE || "P4 plate update");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.SMARTCAR_P4_PLATE_UPDATE_TOOLTIP || "Process incoming licence-plate packets once. Call every loop.");
+    }
+};
+
+export const smartcar_p4_plate_ready = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_P4_PLATE_READY || "P4 plate confirmed?");
+        this.setOutput(true, Boolean);
+        this.setTooltip(Blockly.Msg.SMARTCAR_P4_PLATE_READY_TOOLTIP || "True when the same plate has been confirmed three frames in a row (confidence 120+). Do the action, then call the action-done block.");
+    }
+};
+
+export const smartcar_p4_plate_action_done = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_P4_PLATE_DONE || "P4 plate action done");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.SMARTCAR_P4_PLATE_DONE_TOOLTIP || "Tell the AI Eye board the plate action finished so it resumes sending results. Call after the manoeuvre.");
+    }
+};
+
+export const smartcar_p4_plate_latest_index = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_P4_PLATE_INDEX || "P4 latest plate #");
+        this.setOutput(true, Number);
+        this.setTooltip(Blockly.Msg.SMARTCAR_P4_PLATE_INDEX_TOOLTIP || "Plate index (0-253) of the latest valid packet, or 255 when no plate is visible.");
     }
 };

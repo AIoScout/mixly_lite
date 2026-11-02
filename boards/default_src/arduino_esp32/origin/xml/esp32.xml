@@ -3439,6 +3439,42 @@
     <block type="smartcar_p4_confirmed_label"></block>
     <block type="smartcar_p4_confirmed_confidence"></block>
     <block type="smartcar_p4_end_decision"></block>
+    <block type="smartcar_obstacle_wait_clear">
+      <value name="RESUME_CM">
+        <block type="math_number"><field name="NUM">11</field></block>
+      </value>
+      <value name="TIMEOUT_S">
+        <block type="math_number"><field name="NUM">10</field></block>
+      </value>
+    </block>
+    <block type="smartcar_rfid_report_new_tag"></block>
+    <block type="smartcar_left_motor_run">
+      <value name="DUTY">
+        <block type="math_number"><field name="NUM">17</field></block>
+      </value>
+      <value name="DURATION">
+        <block type="math_number"><field name="NUM">500</field></block>
+      </value>
+    </block>
+    <block type="smartcar_left_motor_sequence">
+      <value name="DUTY">
+        <block type="math_number"><field name="NUM">17</field></block>
+      </value>
+      <value name="CW_MS">
+        <block type="math_number"><field name="NUM">700</field></block>
+      </value>
+      <value name="PAUSE_MS">
+        <block type="math_number"><field name="NUM">500</field></block>
+      </value>
+      <value name="ACW_MS">
+        <block type="math_number"><field name="NUM">250</field></block>
+      </value>
+    </block>
+    <block type="smartcar_p4_plate_start_link"></block>
+    <block type="smartcar_p4_plate_update"></block>
+    <block type="smartcar_p4_plate_ready"></block>
+    <block type="smartcar_p4_plate_action_done"></block>
+    <block type="smartcar_p4_plate_latest_index"></block>
   </category>
 
   <!-- AI Vision Category -->
