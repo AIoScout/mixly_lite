@@ -303,6 +303,9 @@ ZhHans.PLUGIN_AI_BODY_STARTER = 'AI Body 入门程序';
 
 
 
-ZhHans.AIVISION_SIGN_FW = 'AI Eye 固件（已导出模型）';
-ZhHans.AIVISION_SIGN_FW_TOOLTIP = '编译/上传时构建并烧录承载 AI Training 导出模型的 AI Eye（P4）固件，而不是积木代码。请先选 AI Eye 板的串口。';
 ZhHans.PLUGIN_AI_EYE_FIRMWARE = 'AI Eye 固件 (P4)';
+
+
+ZhHans.AIVISION_SIGN_FW = 'AI Eye 固件';
+ZhHans.AIVISION_SIGN_FW_SIGN = '路牌（image 模型）';
+ZhHans.AIVISION_SIGN_FW_PLATE = '车牌（sign 模型）';

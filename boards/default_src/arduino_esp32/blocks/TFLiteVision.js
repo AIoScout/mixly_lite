@@ -206,7 +206,11 @@ export const aivision_sign_firmware_deploy = {
     init: function () {
         this.setColour(AIVISION_HUE);
         this.appendDummyInput()
-            .appendField(Blockly.Msg.AIVISION_SIGN_FW || "AI Eye firmware (exported model)");
+            .appendField(Blockly.Msg.AIVISION_SIGN_FW || "AI Eye firmware")
+            .appendField(new Blockly.FieldDropdown([
+                [Blockly.Msg.AIVISION_SIGN_FW_SIGN || "road signs (image model)", "sign"],
+                [Blockly.Msg.AIVISION_SIGN_FW_PLATE || "licence plates (sign model)", "plate"]
+            ]), "FIRMWARE");
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setTooltip(Blockly.Msg.AIVISION_SIGN_FW_TOOLTIP || "Compile & Upload build the AI Eye (P4) firmware that carries the model exported from AI Training — not the block code. Select the AI Eye board's serial port first.");

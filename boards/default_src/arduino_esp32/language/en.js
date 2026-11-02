@@ -307,6 +307,9 @@ En.PLUGIN_AI_BODY_STARTER = 'AI Body starter';
 
 
 
-En.AIVISION_SIGN_FW = 'AI Eye firmware (exported model)';
-En.AIVISION_SIGN_FW_TOOLTIP = 'Compile & Upload build the AI Eye (P4) firmware that carries the model exported from AI Training — not the block code. Select the AI Eye board port first.';
 En.PLUGIN_AI_EYE_FIRMWARE = 'AI Eye firmware (P4)';
+
+
+En.AIVISION_SIGN_FW = 'AI Eye firmware';
+En.AIVISION_SIGN_FW_SIGN = 'road signs (image model)';
+En.AIVISION_SIGN_FW_PLATE = 'licence plates (sign model)';

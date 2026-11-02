@@ -69,6 +69,8 @@ function resolveOptions(userOptions = {}) {
         // the esp32p4 partition scheme (default = 1.2 MB APP, fits the
         // placeholder model; real 3.9 MB models need e.g. default_8MB).
         signReaderDir: userOptions.signReaderDir || process.env.AIOSCOUT_SIGNREADER_DIR || path.join(resourceDir, '..', 'TFLite_Car_License'),
+        // The image-project firmware sketch (road-sign workshop): TFLite.ino.
+        imageFirmwareDir: process.env.AIOSCOUT_IMAGE_FIRMWARE_DIR || path.join(resourceDir, '..', 'TFLite'),
         // Userspace dir holding the workshop custom core (esp32_mannual,
         // esp32 3.3.0 + bundled ESP32_P4_OV5647/IMX219 camera libraries +
         // the esp_video SDK headers). When absent, arduino-cli falls back to
@@ -605,8 +607,8 @@ ${preprocessToHeader(preprocessPath)}#endif
         // AI Eye firmware program: build the exported TFLite_Sign sketch
         // instead of the block code.
         if (isSignFirmwareBuild(code)) {
-            console.log('[compile] AI Eye firmware build (TFLite_Sign)');
-            doSignreaderBuild(ws, layerNum, null);
+            console.log('[compile] AI Eye firmware build');
+            doSignreaderBuild(ws, layerNum, null, code);
             return;
         }
 
@@ -670,8 +672,8 @@ ${preprocessToHeader(preprocessPath)}#endif
         // AI Eye firmware program: flash the exported TFLite_Sign sketch
         // instead of the block code.
         if (isSignFirmwareBuild(code)) {
-            console.log(`[upload] AI Eye firmware flash (TFLite_Sign) port=${port}`);
-            doSignreaderBuild(ws, layerNum, port);
+            console.log(`[upload] AI Eye firmware flash port=${port}`);
+            doSignreaderBuild(ws, layerNum, port, code);
             return;
         }
 
@@ -734,18 +736,28 @@ ${preprocessToHeader(preprocessPath)}#endif
     // blocks). The workshop custom core (esp32_mannual) provides the camera
     // libraries and esp_video SDK headers.
     function isSignFirmwareBuild(code) {
-        return code.includes('AIOSCOUT_SIGN_FIRMWARE');
+        return code.includes('AIOSCOUT_SIGN_FIRMWARE') || code.includes('AIOSCOUT_PLATE_FIRMWARE');
     }
 
-    function doSignreaderBuild(ws, layerNum, port) {
+    // Which AI Eye firmware sketch this build targets: the image-project
+    // road-sign firmware (TFLite.ino) or the sign_ocr plate firmware
+    // (TFLite_Sign.ino in TFLite_Car_License).
+    function signFirmwareSketchDir(code) {
+        if (code.includes('AIOSCOUT_PLATE_FIRMWARE')) return opts.signReaderDir;
+        if (code.includes('AIOSCOUT_SIGN_FIRMWARE')) return opts.imageFirmwareDir;
+        return null;
+    }
+
+    function doSignreaderBuild(ws, layerNum, port, code) {
         const fail = (msg) => {
             sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'addValue', [`[Error] ${msg}\n`]);
             sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'operateEndError', [port ? 'upload' : 'compile', layerNum, '']);
         };
 
-        const sketchSrc = opts.signReaderDir;
-        if (!sketchSrc || !fs.existsSync(path.join(sketchSrc, 'TFLite_Sign.ino'))) {
-            fail(`AI Eye sketch not found at ${sketchSrc || '(not configured)'} — export a sign/plate project in AI Training first (or set AIOSCOUT_SIGNREADER_DIR)`);
+        const sketchSrc = signFirmwareSketchDir(code || '');
+        const mainIno = sketchSrc === opts.signReaderDir ? 'TFLite_Sign.ino' : 'TFLite.ino';
+        if (!sketchSrc || !fs.existsSync(path.join(sketchSrc, mainIno))) {
+            fail(`AI Eye sketch not found at ${sketchSrc || '(not configured)'} — export the trained model from AI Training first (or set AIOSCOUT_SIGNREADER_DIR / AIOSCOUT_IMAGE_FIRMWARE_DIR)`);
             return;
         }
         const coreUserDir = opts.signReaderUserDir;
@@ -761,7 +773,7 @@ ${preprocessToHeader(preprocessPath)}#endif
             // Stage into a folder named after the .ino — arduino-cli requires
             // the sketch folder to match the main file name.
             const stageRoot = path.join(opts.dataDir, 'signreader_build');
-            const stage = path.join(stageRoot, 'TFLite_Sign');
+            const stage = path.join(stageRoot, mainIno.replace(/\.ino$/, ''));
             fs.rmSync(stageRoot, { recursive: true, force: true });
             ensureDir(stage);
             for (const f of fs.readdirSync(sketchSrc)) {

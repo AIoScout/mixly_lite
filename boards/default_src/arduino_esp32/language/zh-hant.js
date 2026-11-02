@@ -303,6 +303,9 @@ ZhHant.PLUGIN_AI_BODY_STARTER = 'AI Body 入門程式';
 
 
 
-ZhHant.AIVISION_SIGN_FW = 'AI Eye 韌體（已匯出模型）';
-ZhHant.AIVISION_SIGN_FW_TOOLTIP = '編譯/上傳時建置並燒錄承載 AI Training 匯出模型的 AI Eye（P4）韌體，而不是積木程式。請先選 AI Eye 板的序列埠。';
 ZhHant.PLUGIN_AI_EYE_FIRMWARE = 'AI Eye 韌體 (P4)';
+
+
+ZhHant.AIVISION_SIGN_FW = 'AI Eye 韌體';
+ZhHant.AIVISION_SIGN_FW_SIGN = '路牌（image 模型）';
+ZhHant.AIVISION_SIGN_FW_PLATE = '車牌（sign 模型）';

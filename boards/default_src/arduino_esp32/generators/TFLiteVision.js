@@ -120,5 +120,7 @@ export const aivision_set_uart_pins = function (_, generator) {
 // The marker diverts Compile/Upload on the server to build the exported
 // TFLite_Sign sketch for the AI Eye (P4) board instead of this code.
 export const aivision_sign_firmware_deploy = function (_, generator) {
-    return '// AIOSCOUT_SIGN_FIRMWARE — Compile/Upload flashes the exported AI Eye firmware\n';
+    var fw = this.getFieldValue('FIRMWARE');
+    var marker = fw === 'plate' ? 'AIOSCOUT_PLATE_FIRMWARE' : 'AIOSCOUT_SIGN_FIRMWARE';
+    return '// ' + marker + ' — Compile/Upload flashes the exported AI Eye firmware\n';
 };
