@@ -623,8 +623,9 @@
         const confirmMsg = msgText('PLUGIN_ROAD_SIGN_DEMO_CONFIRM', 'Replace the current blocks with this program?');
         if (workspaceBlockCount() > 0 && !window.confirm(confirmMsg)) return;
         try {
-            if (window.Mixly && Mixly.Boards && typeof Mixly.Boards.setSelectedBoardByCommandParam === 'function') {
-                Mixly.Boards.setSelectedBoardByCommandParam('esp32:esp32:esp32p4');
+            // setSelectedBoard takes the board's display name (boards.json).
+            if (window.Mixly && Mixly.Boards && typeof Mixly.Boards.setSelectedBoard === 'function') {
+                Mixly.Boards.setSelectedBoard('ESP32P4 Dev Module');
             }
         } catch (e) { /* board switch best-effort */ }
         fetch('/programs/p4_sign_firmware.xml')
