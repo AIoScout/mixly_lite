@@ -258,3 +258,5 @@ ZhHant.SMARTCAR_WAIT_CENTERED_TOOLTIP = '等待小車重新回到線的中央（
 ZhHant.PLUGIN_ROAD_SIGN_DEMO = '路牌識別範例';
 ZhHant.PLUGIN_ROAD_SIGN_DEMO_TIP = '載入路牌識別 workshop 積木程式（會取代目前積木）';
 ZhHant.PLUGIN_ROAD_SIGN_DEMO_CONFIRM = '用路牌識別範例取代目前的積木程式？';
+
+ZhHant.PLUGIN_OPEN_FILE = '從本機檔案開啟…';

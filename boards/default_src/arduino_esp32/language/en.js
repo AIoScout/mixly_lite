@@ -262,3 +262,5 @@ En.SMARTCAR_WAIT_CENTERED_TOOLTIP = 'Wait until the car is centered on the line 
 En.PLUGIN_ROAD_SIGN_DEMO = 'Road-sign demo';
 En.PLUGIN_ROAD_SIGN_DEMO_TIP = 'Load the road-sign workshop program (replaces the current blocks)';
 En.PLUGIN_ROAD_SIGN_DEMO_CONFIRM = 'Replace the current blocks with the road-sign demo program?';
+
+En.PLUGIN_OPEN_FILE = 'Open from file…';

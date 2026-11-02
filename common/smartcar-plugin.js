@@ -590,6 +590,65 @@
             .catch(() => {});
     }
 
+    // ── Built-in workshop programs (Open ▾ menu) ────────────
+    // Loads a bundled block program, asking before replacing user blocks.
+    function loadWorkshopProgram(url) {
+        const hasBlocks = workspaceBlockCount() > 0;
+        if (hasBlocks && !window.confirm(msgText('PLUGIN_ROAD_SIGN_DEMO_CONFIRM', 'Replace the current blocks with this program?'))) {
+            return;
+        }
+        fetch(url)
+            .then((r) => (r.ok ? r.text() : null))
+            .then((xml) => {
+                if (!xml) {
+                    output('[SmartCar] Program file not found: ' + url + '\n');
+                    return;
+                }
+                loadWorkspaceXml(xml);
+                output('[SmartCar] Road-sign demo loaded — set the sign class numbers if your training order differs, then Compile & Upload to the S3 car.\n');
+            })
+            .catch(() => {});
+    }
+
+    // Dropdown attached to the Open button. The item list is built by
+    // injectButtons() (openMenuItems) and passed in on first open.
+    let openMenuEl = null;
+    function toggleOpenMenu() {
+        if (openMenuEl) { closeOpenMenu(); return; }
+        const btn = document.getElementById('smartcar-open-btn');
+        if (!btn) return;
+        const items = btn.__openMenuItems || [];
+        openMenuEl = document.createElement('div');
+        openMenuEl.id = 'smartcar-open-menu';
+        openMenuEl.style.cssText =
+            'position:absolute;z-index:99999;background:#fff;border:1px solid #d2d2d2;' +
+            'box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:180px;padding:4px 0;';
+        items.forEach((item) => {
+            const row = document.createElement('div');
+            row.style.cssText =
+                'padding:6px 14px;font-size:12px;cursor:pointer;white-space:nowrap;color:#333;';
+            row.onmouseenter = () => { row.style.background = '#f2f2f2'; };
+            row.onmouseleave = () => { row.style.background = 'transparent'; };
+            row.innerHTML = '<i class="' + (item.icon || 'icon-folder-open') + '" style="margin-right:8px;"></i>' + item.label;
+            row.onclick = () => { closeOpenMenu(); item.action(); };
+            openMenuEl.appendChild(row);
+        });
+        document.body.appendChild(openMenuEl);
+        const rect = btn.getBoundingClientRect();
+        openMenuEl.style.left = Math.max(0, rect.left) + 'px';
+        openMenuEl.style.top = (rect.bottom + 2) + 'px';
+        setTimeout(() => {
+            document.addEventListener('mousedown', openMenuOutside, true);
+        }, 0);
+    }
+    function closeOpenMenu() {
+        if (openMenuEl) { openMenuEl.remove(); openMenuEl = null; }
+        document.removeEventListener('mousedown', openMenuOutside, true);
+    }
+    function openMenuOutside(e) {
+        if (openMenuEl && !openMenuEl.contains(e.target)) closeOpenMenu();
+    }
+
     function updateSaveIndicator() {
         const el = document.getElementById('smartcar-filename');
         if (el && fileHandle) el.textContent = fileHandle.name;
@@ -842,12 +901,27 @@
         saveBtn.innerHTML = '<a class="icon-save">' + msgText('PLUGIN_SAVE', 'Save') + '</a>';
         saveBtn.onclick = doSave;
 
-        // Open button
+        // Open button — a dropdown menu: open a local file (the classic
+        // Open) plus built-in workshop programs. Add entries here to grow
+        // the menu.
+        const openMenuItems = [
+            {
+                label: msgText('PLUGIN_OPEN_FILE', 'Open from file…'),
+                icon: 'icon-folder-open',
+                action: () => doOpen(null),
+            },
+            {
+                label: msgText('PLUGIN_ROAD_SIGN_DEMO', 'Road-sign project'),
+                icon: 'icon-play',
+                action: () => loadWorkshopProgram('/programs/road_sign_workshop.xml'),
+            },
+        ];
         const openBtn = document.createElement('button');
         openBtn.id = 'smartcar-open-btn';
         openBtn.className = 'layui-btn layui-btn-xs layui-btn-primary mixly-nav';
-        openBtn.innerHTML = '<a class="icon-folder-open">' + msgText('PLUGIN_OPEN', 'Open') + '</a>';
-        openBtn.onclick = () => doOpen(null);
+        openBtn.innerHTML = '<a class="icon-folder-open">' + msgText('PLUGIN_OPEN', 'Open') + ' ▾</a>';
+        openBtn.onclick = () => toggleOpenMenu();
+        openBtn.__openMenuItems = openMenuItems;
 
         container.appendChild(saveBtn);
         container.appendChild(openBtn);
@@ -864,32 +938,6 @@
         monitorBtn.onclick = () => { toggleMonitor().catch(() => {}); };
         container.appendChild(monitorBtn);
         updateMonitorBtnState();
-
-        // Workshop demo — loads the ready-made road-sign block program
-        // (follow line → stop → AI Eye sign recognition → turn) in one click.
-        const demoBtn = document.createElement('button');
-        demoBtn.id = 'smartcar-demo-btn';
-        demoBtn.className = 'layui-btn layui-btn-xs layui-btn-primary mixly-nav';
-        demoBtn.innerHTML = '<a class="icon-play">' + msgText('PLUGIN_ROAD_SIGN_DEMO', 'Road-sign demo') + '</a>';
-        demoBtn.title = msgText('PLUGIN_ROAD_SIGN_DEMO_TIP', 'Load the road-sign workshop program (replaces the current blocks)');
-        demoBtn.onclick = () => {
-            const hasBlocks = workspaceBlockCount() > 0;
-            if (hasBlocks && !window.confirm(msgText('PLUGIN_ROAD_SIGN_DEMO_CONFIRM', 'Replace the current blocks with the road-sign demo program?'))) {
-                return;
-            }
-            fetch('/programs/road_sign_workshop.xml')
-                .then((r) => (r.ok ? r.text() : null))
-                .then((xml) => {
-                    if (!xml) {
-                        output('[SmartCar] Road-sign demo file not found.\n');
-                        return;
-                    }
-                    loadWorkspaceXml(xml);
-                    output('[SmartCar] Road-sign demo loaded — set the sign class numbers if your training order differs, then Compile & Upload to the S3 car.\n');
-                })
-                .catch(() => {});
-        };
-        container.appendChild(demoBtn);
 
         // Filename indicator (shows current file name)
         const filename = document.createElement('span');

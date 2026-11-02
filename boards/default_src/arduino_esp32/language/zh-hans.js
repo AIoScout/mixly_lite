@@ -258,3 +258,5 @@ ZhHans.SMARTCAR_WAIT_CENTERED_TOOLTIP = '等待小车重新回到线的中央（
 ZhHans.PLUGIN_ROAD_SIGN_DEMO = '路牌识别例程';
 ZhHans.PLUGIN_ROAD_SIGN_DEMO_TIP = '加载路牌识别 workshop 积木程序（会替换当前积木）';
 ZhHans.PLUGIN_ROAD_SIGN_DEMO_CONFIRM = '用路牌识别例程替换当前的积木程序？';
+
+ZhHans.PLUGIN_OPEN_FILE = '从本地文件打开…';
