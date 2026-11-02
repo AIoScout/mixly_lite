@@ -32,3 +32,7 @@ libraries/
 # TFLite model upload sessions
 .model_uploads/
 
+
+# Koil's camera Arduino libraries, dropped in manually
+camera-libs/ESP32_P4_IMX219/
+camera-libs/ESP32_P4_OV5647/

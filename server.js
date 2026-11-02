@@ -64,6 +64,13 @@ function resolveOptions(userOptions = {}) {
         smartCarDir: userOptions.smartCarDir || path.join(resourceDir, 'SmartCar'),
         mixlyTfliteDir: userOptions.mixlyTfliteDir || path.join(resourceDir, 'Mixly_TFLite'),
         p4LibDir: userOptions.p4LibDir || process.env.P4_IMX219_LIB || path.join(resourceDir, 'ESP32-P4-IMX219-PoC'),
+        // AI Eye (P4) sign/plate firmware burn chain: the exported sketch
+        // folder, the drop-in dir for Koil's camera Arduino libraries, and
+        // the esp32p4 partition scheme (default = 1.2 MB APP, fits the
+        // placeholder model; real 3.9 MB models need e.g. default_8MB).
+        signReaderDir: userOptions.signReaderDir || process.env.AIOSCOUT_SIGNREADER_DIR || path.join(resourceDir, '..', 'TFLite_Car_License'),
+        signCamLibsDir: path.join(resourceDir, 'camera-libs'),
+        signReaderPartition: process.env.AIOSCOUT_SIGNREADER_PARTITION || 'default',
         modelLibraryDir: userOptions.modelLibraryDir || process.env.AIOSCOUT_MODEL_LIBRARY || null,
         onReady: userOptions.onReady || null,
     };
@@ -520,17 +527,11 @@ ${preprocessToHeader(preprocessPath)}#endif
         return preferred;
     }
 
-    function runArduinoCLI(ws, cliArgs, layerNum, type) {
-        // Self-heal a stale busy flag (no process, no run) and refuse to
-        // spawn while another build owns the shared directories.
-        if (!currentProcess) buildBusy = false;
-        if (buildBusy || currentProcess) {
-            sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'operateEndError',
-                [type, layerNum, 'Error: another compile/upload is still running — wait for it to finish or press Stop first']);
-            return;
-        }
+    // Spawn arduino-cli with no guards — callers must already hold the
+    // buildBusy lock (runArduinoCLI, or handleSignreaderUpload after its own
+    // staging under the lock).
+    function spawnArduinoCLI(ws, cliArgs, layerNum, type) {
         console.log(`[cli] ${opts.arduinoCli} ${cliArgs.join(' ')}`);
-        buildBusy = true;
         const proc = execFile(opts.arduinoCli, cliArgs, {
             env: { ...process.env, LANG: 'en_US.UTF-8' },
             maxBuffer: 10 * 1024 * 1024
@@ -564,6 +565,19 @@ ${preprocessToHeader(preprocessPath)}#endif
         };
         proc.stdout?.on('data', stream);
         proc.stderr?.on('data', stream);
+    }
+
+    function runArduinoCLI(ws, cliArgs, layerNum, type) {
+        // Self-heal a stale busy flag (no process, no run) and refuse to
+        // spawn while another build owns the shared directories.
+        if (!currentProcess) buildBusy = false;
+        if (buildBusy || currentProcess) {
+            sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'operateEndError',
+                [type, layerNum, 'Error: another compile/upload is still running — wait for it to finish or press Stop first']);
+            return;
+        }
+        buildBusy = true;
+        spawnArduinoCLI(ws, cliArgs, layerNum, type);
     }
 
     // ── Command Handlers ───────────────────────────────────────
@@ -685,6 +699,89 @@ ${preprocessToHeader(preprocessPath)}#endif
             // buildBusy (identity-checked), keeping the lock lifecycle in
             // one place.
             currentProcess.kill('SIGTERM');
+        }
+    }
+
+    // ── Sign reader (AI Eye P4 firmware) burn ─────────────────
+    // Compiles and flashes the TFLite_Sign sketch — the AI Eye board
+    // firmware that carries the model exported from a sign/plate training
+    // run. The S3 side is a normal block program (P4 link blocks).
+    function deploySignCamLib(name) {
+        const dest = path.join(LIBRARIES_DIR, name);
+        if (fs.existsSync(dest)) return true; // already installed
+        const src = path.join(opts.signCamLibsDir, name);
+        if (!fs.existsSync(src)) return false; // nothing to deploy
+        ensureDir(LIBRARIES_DIR);
+        fs.cpSync(src, dest, { recursive: true });
+        console.log(`[signreader] deployed camera library ${name}`);
+        return true;
+    }
+
+    function handleSignreaderUpload(ws, args) {
+        const [layerNum, port] = args.map(a => decodeURIComponent(a));
+        console.log(`[signreader] port=${port || 'none'}`);
+
+        const fail = (msg) => {
+            sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'addValue', [`[Error] ${msg}\n`]);
+            sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'operateEndError', ['upload', layerNum, '']);
+        };
+
+        if (!port || port === 'null' || port === 'undefined') {
+            fail('No serial port selected — pick the AI Eye (P4) board port first');
+            return;
+        }
+        if (!currentProcess) buildBusy = false; // self-heal stale flag
+        if (buildBusy) {
+            fail('another compile/upload is still running — wait for it to finish or press Stop first');
+            return;
+        }
+
+        const sketchSrc = opts.signReaderDir;
+        if (!sketchSrc || !fs.existsSync(path.join(sketchSrc, 'TFLite_Sign.ino'))) {
+            fail(`AI Eye sketch not found at ${sketchSrc || '(not configured)'} — export a sign/plate project in AI Training first (or set AIOSCOUT_SIGNREADER_DIR)`);
+            return;
+        }
+
+        buildBusy = true;
+        try {
+            // Stage into a folder named after the .ino — arduino-cli requires
+            // the sketch folder to match the main file name.
+            const stageRoot = path.join(opts.dataDir, 'signreader_build');
+            const stage = path.join(stageRoot, 'TFLite_Sign');
+            fs.rmSync(stageRoot, { recursive: true, force: true });
+            ensureDir(stage);
+            for (const f of fs.readdirSync(sketchSrc)) {
+                if (/\.(ino|cpp|c|h|hpp|txt)$/.test(f)) {
+                    fs.copyFileSync(path.join(sketchSrc, f), path.join(stage, f));
+                }
+            }
+
+            // Koil's camera Arduino libraries must be installed once; drop
+            // the folders into <mixly>/camera-libs/ (auto-deployed per run).
+            const missing = ['ESP32_P4_IMX219', 'ESP32_P4_OV5647'].filter((n) => !deploySignCamLib(n));
+            if (missing.length) {
+                buildBusy = false;
+                fail(`camera librar${missing.length > 1 ? 'ies' : 'y'} ${missing.join(', ')} not installed — copy the folder(s) from Koil into ${opts.signCamLibsDir} and retry`);
+                return;
+            }
+
+            // esptool needs the port exclusively.
+            closeAllSerialPorts();
+
+            const buildDir = path.join(stageRoot, 'build');
+            // -DARDUINO_ARCH_ESP32P4: core 3.3.0 does not define it (newer
+            // cores do), and the sketch's camera-library branch is gated on
+            // it. Harmless where the core already defines it.
+            spawnArduinoCLI(ws, [
+                'compile', '--upload', '-p', port,
+                '-b', `esp32:esp32:esp32p4:PartitionScheme=${opts.signReaderPartition}`,
+                '--build-property', 'compiler.cpp.extra_flags=-DARDUINO_ARCH_ESP32P4',
+                '--build-path', buildDir, '--libraries', LIBRARIES_DIR,
+                '--no-color', stage
+            ], layerNum, 'upload');
+        } catch (e) {
+            buildBusy = false;
+            fail(`staging failed: ${e.message}`);
         }
     }
 
@@ -861,6 +958,7 @@ ${preprocessToHeader(preprocessPath)}#endif
                         case 'compile': handleCompile(ws, args); break;
                         case 'upload':  handleUpload(ws, args); break;
                         case 'cancel':  handleCancel(); break;
+                        case 'signreader': handleSignreaderUpload(ws, args); break;
                     }
                 } else if (obj === 'Serial') {
                     switch (func) {

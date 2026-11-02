@@ -300,3 +300,7 @@ ZhHans.PLUGIN_MONITOR_CLOSE = '关闭串口监视器';
 ZhHans.PLUGIN_SELECT_PORT_FIRST = '请先选择一个串口';
 
 ZhHans.PLUGIN_AI_BODY_STARTER = 'AI Body 入门程序';
+
+ZhHans.PLUGIN_FLASH_P4 = '烧录 P4 AI Eye';
+ZhHans.PLUGIN_FLASH_P4_TIP = '编译导出的路牌/车牌固件并烧录到所选端口上的 AI Eye（P4）板';
+ZhHans.PLUGIN_FLASH_P4_CONFIRM = '烧录 AI Eye（P4）固件？这会覆盖 {port} 板上的现有程序。';

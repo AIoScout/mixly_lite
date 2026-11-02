@@ -300,3 +300,7 @@ ZhHant.PLUGIN_MONITOR_CLOSE = '關閉序列監視器';
 ZhHant.PLUGIN_SELECT_PORT_FIRST = '請先選擇一個序列埠';
 
 ZhHant.PLUGIN_AI_BODY_STARTER = 'AI Body 入門程式';
+
+ZhHant.PLUGIN_FLASH_P4 = '燒錄 P4 AI Eye';
+ZhHant.PLUGIN_FLASH_P4_TIP = '編譯匯出的路牌/車牌韌體並燒錄到所選埠上的 AI Eye（P4）板';
+ZhHant.PLUGIN_FLASH_P4_CONFIRM = '燒錄 AI Eye（P4）韌體？這會覆蓋 {port} 板上的現有程式。';

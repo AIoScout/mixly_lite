@@ -952,6 +952,26 @@
         container.appendChild(compileBtn);
         container.appendChild(uploadBtn);
 
+        // Flash the AI Eye (P4) sign/plate firmware — compiles and burns the
+        // exported TFLite_Sign sketch to the port selected below (the P4
+        // board). The S3 side stays a normal block program (P4 link blocks).
+        const p4Btn = document.createElement('button');
+        p4Btn.id = 'smartcar-p4flash-btn';
+        p4Btn.className = 'layui-btn layui-btn-xs layui-btn-primary mixly-nav';
+        p4Btn.innerHTML = '<a class="icon-upload">' + msgText('PLUGIN_FLASH_P4', 'Flash P4 AI Eye') + '</a>';
+        p4Btn.title = msgText('PLUGIN_FLASH_P4_TIP', 'Compile and flash the exported sign/plate firmware to the AI Eye (P4) board on the selected port');
+        p4Btn.onclick = () => {
+            const port = getSelectedPort();
+            if (!port || port === 'null' || port === 'undefined') {
+                alert(msgText('PLUGIN_SELECT_PORT_FIRST', 'Please select a serial port first'));
+                return;
+            }
+            if (!window.confirm(msgText('PLUGIN_FLASH_P4_CONFIRM', 'Flash the AI Eye (P4) firmware? This replaces what is on board {port}.').replace('{port}', port))) return;
+            showLoader(msgText('PLUGIN_FLASH_P4', 'Flash P4 AI Eye'));
+            sendCommand('ArduShell', 'signreader', [1, encodeURIComponent(port)]);
+        };
+        container.appendChild(p4Btn);
+
         // Serial monitor toggle — opens/closes the native monitor for the
         // port selected in the footer, no extra port picking.
         const monitorBtn = document.createElement('button');
