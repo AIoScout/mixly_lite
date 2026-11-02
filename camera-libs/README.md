@@ -1,17 +1,13 @@
-# camera-libs — drop-in camera Arduino libraries (not committed)
+# camera-libs — legacy drop-in dir (unused)
 
-The AI Eye (P4) sign/plate firmware burn (`Flash P4 AI Eye` button)
-compiles Koil's `TFLite_Sign` sketch, whose camera layer needs the
-private Arduino libraries from Koil:
+The AI Eye (P4) burn no longer needs separate camera libraries: the
+workshop custom core `esp32_mannual` bundles ESP32_P4_OV5647 and
+ESP32_P4_IMX219 plus the esp_video SDK headers. Install that core once:
 
-- `ESP32_P4_IMX219/`   (folder with library.properties / src)
-- `ESP32_P4_OV5647/`
+    unzip esp32_mannual.zip
+    mkdir -p <mixly>/.arduino-user/hardware/esp32_mannual
+    cp -R esp32_mannual/esp32p4 <mixly>/.arduino-user/hardware/esp32_mannual/
 
-Copy both folders here (or directly into the server's libraries dir). The
-server auto-deploys them into its Arduino libraries directory on each P4
-burn. Without them the burn stops with a clear error before compiling.
-
-Upstreaming note: mixly's own `Mixly_TFLite/P4IMX219.cpp` carries an
-esp_video fallback for its AI Eye blocks, but the sign sketch's
-preprocessing parity (gray conversion matching the training data) is
-tuned against Koil's libraries — do not substitute them casually.
+(or the classic tutorial layout ~/Documents/Arduino/hardware/esp32_mannual/
+— the server checks both). The zip is linked from the workshop lab manual
+(https://aioscout.io/tutorial-materials/workshop/lab-manual.html).

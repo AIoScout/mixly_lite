@@ -69,8 +69,13 @@ function resolveOptions(userOptions = {}) {
         // the esp32p4 partition scheme (default = 1.2 MB APP, fits the
         // placeholder model; real 3.9 MB models need e.g. default_8MB).
         signReaderDir: userOptions.signReaderDir || process.env.AIOSCOUT_SIGNREADER_DIR || path.join(resourceDir, '..', 'TFLite_Car_License'),
-        signCamLibsDir: path.join(resourceDir, 'camera-libs'),
-        signReaderPartition: process.env.AIOSCOUT_SIGNREADER_PARTITION || 'default',
+        // Userspace dir holding the workshop custom core (esp32_mannual,
+        // esp32 3.3.0 + bundled ESP32_P4_OV5647/IMX219 camera libraries +
+        // the esp_video SDK headers). When absent, arduino-cli falls back to
+        // ~/Documents/Arduino where the tutorial install lives.
+        signReaderUserDir: process.env.AIOSCOUT_SIGNREADER_ARDUINO_USER || path.join(resourceDir, '.arduino-user'),
+        signReaderFqbnPrefix: process.env.AIOSCOUT_SIGNREADER_FQBN || 'esp32_mannual:esp32p4:esp32p4',
+        signReaderPartition: process.env.AIOSCOUT_SIGNREADER_PARTITION || 'default_8MB',
         modelLibraryDir: userOptions.modelLibraryDir || process.env.AIOSCOUT_MODEL_LIBRARY || null,
         onReady: userOptions.onReady || null,
     };
@@ -530,10 +535,14 @@ ${preprocessToHeader(preprocessPath)}#endif
     // Spawn arduino-cli with no guards — callers must already hold the
     // buildBusy lock (runArduinoCLI, or handleSignreaderUpload after its own
     // staging under the lock).
-    function spawnArduinoCLI(ws, cliArgs, layerNum, type) {
+    function spawnArduinoCLI(ws, cliArgs, layerNum, type, extraEnv) {
         console.log(`[cli] ${opts.arduinoCli} ${cliArgs.join(' ')}`);
         const proc = execFile(opts.arduinoCli, cliArgs, {
-            env: { ...process.env, LANG: 'en_US.UTF-8' },
+            env: {
+                ...process.env,
+                ...(extraEnv || {}),
+                LANG: 'en_US.UTF-8'
+            },
             maxBuffer: 10 * 1024 * 1024
         }, (error, stdout, stderr) => {
             // Only the owning process may clear the state: a killed or
@@ -705,17 +714,9 @@ ${preprocessToHeader(preprocessPath)}#endif
     // ── Sign reader (AI Eye P4 firmware) burn ─────────────────
     // Compiles and flashes the TFLite_Sign sketch — the AI Eye board
     // firmware that carries the model exported from a sign/plate training
-    // run. The S3 side is a normal block program (P4 link blocks).
-    function deploySignCamLib(name) {
-        const dest = path.join(LIBRARIES_DIR, name);
-        if (fs.existsSync(dest)) return true; // already installed
-        const src = path.join(opts.signCamLibsDir, name);
-        if (!fs.existsSync(src)) return false; // nothing to deploy
-        ensureDir(LIBRARIES_DIR);
-        fs.cpSync(src, dest, { recursive: true });
-        console.log(`[signreader] deployed camera library ${name}`);
-        return true;
-    }
+    // run. The S3 side is a normal block program (P4 link blocks). The
+    // workshop custom core (esp32_mannual) provides the camera libraries
+    // and esp_video SDK headers.
 
     function handleSignreaderUpload(ws, args) {
         const [layerNum, port] = args.map(a => decodeURIComponent(a));
@@ -744,6 +745,22 @@ ${preprocessToHeader(preprocessPath)}#endif
 
         buildBusy = true;
         try {
+            // The workshop custom core (esp32_mannual) carries the camera
+            // libraries and esp_video SDK headers — without it the sketch
+            // cannot compile on the stock core.
+            const coreUserDir = opts.signReaderUserDir;
+            const coreInstalled =
+                fs.existsSync(path.join(coreUserDir, 'hardware', 'esp32_mannual')) ||
+                fs.existsSync(path.join(process.env.HOME || '', 'Documents', 'Arduino', 'hardware', 'esp32_mannual'));
+            if (!coreInstalled) {
+                buildBusy = false;
+                fail(`workshop core esp32_mannual not installed — unzip esp32_mannual.zip so that esp32p4/ lands under ${path.join(coreUserDir, 'hardware', 'esp32_mannual', '')} (or ~/Documents/Arduino/hardware/esp32_mannual/)`);
+                return;
+            }
+            const extraEnv = fs.existsSync(path.join(coreUserDir, 'hardware', 'esp32_mannual'))
+                ? { ARDUINO_DIRECTORIES_USER: coreUserDir }
+                : {};
+
             // Stage into a folder named after the .ino — arduino-cli requires
             // the sketch folder to match the main file name.
             const stageRoot = path.join(opts.dataDir, 'signreader_build');
@@ -756,29 +773,20 @@ ${preprocessToHeader(preprocessPath)}#endif
                 }
             }
 
-            // Koil's camera Arduino libraries must be installed once; drop
-            // the folders into <mixly>/camera-libs/ (auto-deployed per run).
-            const missing = ['ESP32_P4_IMX219', 'ESP32_P4_OV5647'].filter((n) => !deploySignCamLib(n));
-            if (missing.length) {
-                buildBusy = false;
-                fail(`camera librar${missing.length > 1 ? 'ies' : 'y'} ${missing.join(', ')} not installed — copy the folder(s) from Koil into ${opts.signCamLibsDir} and retry`);
-                return;
-            }
-
             // esptool needs the port exclusively.
             closeAllSerialPorts();
 
             const buildDir = path.join(stageRoot, 'build');
-            // -DARDUINO_ARCH_ESP32P4: core 3.3.0 does not define it (newer
-            // cores do), and the sketch's camera-library branch is gated on
-            // it. Harmless where the core already defines it.
+            // -DARDUINO_ARCH_ESP32P4: the stock 3.3.0 platform (which the
+            // custom core derives from) does not define it, and the sketch's
+            // camera branch is gated on it. Harmless where already defined.
             spawnArduinoCLI(ws, [
                 'compile', '--upload', '-p', port,
-                '-b', `esp32:esp32:esp32p4:PartitionScheme=${opts.signReaderPartition}`,
+                '-b', `${opts.signReaderFqbnPrefix}:PartitionScheme=${opts.signReaderPartition},CDCOnBoot=cdc`,
                 '--build-property', 'compiler.cpp.extra_flags=-DARDUINO_ARCH_ESP32P4',
                 '--build-path', buildDir, '--libraries', LIBRARIES_DIR,
                 '--no-color', stage
-            ], layerNum, 'upload');
+            ], layerNum, 'upload', extraEnv);
         } catch (e) {
             buildBusy = false;
             fail(`staging failed: ${e.message}`);

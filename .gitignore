@@ -36,3 +36,6 @@ libraries/
 # Koil's camera Arduino libraries, dropped in manually
 camera-libs/ESP32_P4_IMX219/
 camera-libs/ESP32_P4_OV5647/
+
+# local arduino userspace (custom esp32_mannual core)
+.arduino-user/
