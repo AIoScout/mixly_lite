@@ -199,8 +199,6 @@ ZhHant.SMARTCAR_PID_UPDATE_LOOP_TOOLTIP = '更新編碼器轉速並將 PID 輸�
 // AI Vision
 ZhHant.AIVISION_INIT_EYE = '初始化 AI 眼睛（攝影機+AI）';
 ZhHant.AIVISION_INIT_EYE_TOOLTIP = '在 AI 眼睛板上初始化攝影機、AI模型和通信';
-ZhHant.AIVISION_INIT_BODY = '初始化 AI 身體（接收結果）';
-ZhHant.AIVISION_INIT_BODY_TOOLTIP = '初始化為 AI 身體板，接收來自 AI 眼睛的辨識結果';
 ZhHant.AIVISION_UPLOAD_MODEL = '載入 AI 模型';
 ZhHant.AIVISION_UPLOAD_MODEL_TOOLTIP = '上傳 .tflite 模型和標籤檔案';
 ZhHant.AIVISION_USE_PSRAM = '使用 PSRAM';
@@ -212,8 +210,6 @@ ZhHant.AIVISION_PREDICT_INDEX = '類別編號';
 ZhHant.AIVISION_PREDICT_CONFIDENCE = '信心度';
 ZhHant.AIVISION_CLASS_COUNT = '類別數量';
 ZhHant.AIVISION_CLASS_COUNT_TOOLTIP = '取得 AI 模型中的類別總數';
-ZhHant.AIVISION_HAS_NEW_RESULT = '有新 AI 結果';
-ZhHant.AIVISION_HAS_NEW_RESULT_TOOLTIP = '當有新的 AI 結果時為真';
 ZhHant.AIVISION_SEND_RESULT = '發送 AI 結果給夥伴';
 ZhHant.AIVISION_SEND_RESULT_TOOLTIP = '將上次 AI 預測結果發送給夥伴板（預設自動發送）';
 ZhHant.AIVISION_SET_UART_PINS = '設定通訊引腳';
@@ -299,7 +295,6 @@ ZhHant.PLUGIN_MONITOR_OPEN = '開啟所選埠的序列監視器';
 ZhHant.PLUGIN_MONITOR_CLOSE = '關閉序列監視器';
 ZhHant.PLUGIN_SELECT_PORT_FIRST = '請先選擇一個序列埠';
 
-ZhHant.PLUGIN_AI_BODY_STARTER = 'AI Body 入門程式';
 
 
 

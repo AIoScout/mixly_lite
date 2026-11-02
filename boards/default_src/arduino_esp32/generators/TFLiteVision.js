@@ -29,15 +29,6 @@ export const aivision_init_eye = function (_, generator) {
 // AI BODY INIT
 // ============================================
 
-export const aivision_init_body = function (_, generator) {
-    addAIVisionDefinitions(generator);
-
-    generator.setups_['aivision_init'] =
-        '  AIVision::InitBody(g_model_data, g_model_data_len);\n';
-
-    return '';
-};
-
 // ============================================
 // UPLOAD MODEL
 // ============================================
@@ -81,12 +72,6 @@ export const aivision_class_count = function (_, generator) {
 // ============================================
 // HAS NEW RESULT
 // ============================================
-
-export const aivision_has_new_result = function (_, generator) {
-    addAIVisionDefinitions(generator);
-
-    return ['AIVision::HasNewResult()', generator.ORDER_ATOMIC];
-};
 
 // ============================================
 // SEND RESULT

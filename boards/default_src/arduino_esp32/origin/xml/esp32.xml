@@ -3483,11 +3483,9 @@
     <block type="aivision_init_eye">
       <field name="USE_PSRAM">true</field>
     </block>
-    <block type="aivision_init_body"></block>
     <block type="aivision_upload_model"></block>
     <block type="aivision_predict"></block>
     <block type="aivision_class_count"></block>
-    <block type="aivision_has_new_result"></block>
     <block type="aivision_send_result"></block>
     <block type="aivision_set_uart_pins">
       <value name="TX_PIN">

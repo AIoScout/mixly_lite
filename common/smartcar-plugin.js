@@ -553,8 +553,8 @@
         const fqbn = String(getBoardType() || '');
         if (fqbn.indexOf('p4') !== -1) return '/programs/p4_ai_eye.xml';
         // S3 default: the road-sign workshop program (the core classroom
-        // flow). The general-purpose AI Body starter stays one click away
-        // in the Open ▾ menu.
+        // flow). The S3 never runs the vision model — recognition results
+        // arrive from the AI Eye (P4) over UART (P4 link blocks).
         return '/programs/road_sign_workshop.xml';
     }
 
@@ -946,11 +946,6 @@
                 label: msgText('PLUGIN_ROAD_SIGN_DEMO', 'Road-sign project'),
                 icon: 'icon-play',
                 action: () => loadWorkshopProgram('/programs/road_sign_workshop.xml'),
-            },
-            {
-                label: msgText('PLUGIN_AI_BODY_STARTER', 'AI Body starter'),
-                icon: 'icon-folder-open',
-                action: () => loadWorkshopProgram('/programs/s3_ai_body.xml'),
             },
             {
                 label: msgText('PLUGIN_TURNSTILE_HARDCODE', 'Turnstile startup demo'),
