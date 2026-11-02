@@ -197,3 +197,18 @@ export const aivision_set_uart_pins = {
         this.setTooltip(Blockly.Msg.AIVISION_SET_UART_PINS_TOOLTIP || "Set UART communication pins (default: TX=43, RX=44)");
     }
 };
+
+// ============================================
+// AI EYE SIGN/PLATE FIRMWARE PROGRAM
+// ============================================
+
+export const aivision_sign_firmware_deploy = {
+    init: function () {
+        this.setColour(AIVISION_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.AIVISION_SIGN_FW || "AI Eye firmware (exported model)");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.AIVISION_SIGN_FW_TOOLTIP || "Compile & Upload build the AI Eye (P4) firmware that carries the model exported from AI Training — not the block code. Select the AI Eye board's serial port first.");
+    }
+};

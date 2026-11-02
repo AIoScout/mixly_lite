@@ -305,6 +305,8 @@ En.PLUGIN_SELECT_PORT_FIRST = 'Please select a serial port first';
 
 En.PLUGIN_AI_BODY_STARTER = 'AI Body starter';
 
-En.PLUGIN_FLASH_P4 = 'Flash P4 AI Eye';
-En.PLUGIN_FLASH_P4_TIP = 'Compile and flash the exported sign/plate firmware to the AI Eye (P4) board on the selected port';
-En.PLUGIN_FLASH_P4_CONFIRM = 'Flash the AI Eye (P4) firmware? This replaces what is on board {port}.';
+
+
+En.AIVISION_SIGN_FW = 'AI Eye firmware (exported model)';
+En.AIVISION_SIGN_FW_TOOLTIP = 'Compile & Upload build the AI Eye (P4) firmware that carries the model exported from AI Training — not the block code. Select the AI Eye board port first.';
+En.PLUGIN_AI_EYE_FIRMWARE = 'AI Eye firmware (P4)';

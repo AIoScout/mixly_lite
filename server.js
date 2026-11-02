@@ -602,6 +602,14 @@ ${preprocessToHeader(preprocessPath)}#endif
         }
         buildBusy = true;
 
+        // AI Eye firmware program: build the exported TFLite_Sign sketch
+        // instead of the block code.
+        if (isSignFirmwareBuild(code)) {
+            console.log('[compile] AI Eye firmware build (TFLite_Sign)');
+            doSignreaderBuild(ws, layerNum, null);
+            return;
+        }
+
         const useTFLite = code.includes('Mixly_TFLite');
 
         const doCompile = () => {
@@ -659,6 +667,14 @@ ${preprocessToHeader(preprocessPath)}#endif
         }
         buildBusy = true;
 
+        // AI Eye firmware program: flash the exported TFLite_Sign sketch
+        // instead of the block code.
+        if (isSignFirmwareBuild(code)) {
+            console.log(`[upload] AI Eye firmware flash (TFLite_Sign) port=${port}`);
+            doSignreaderBuild(ws, layerNum, port);
+            return;
+        }
+
         const useTFLite = code.includes('Mixly_TFLite');
 
         const doUpload = () => {
@@ -711,56 +727,37 @@ ${preprocessToHeader(preprocessPath)}#endif
         }
     }
 
-    // ── Sign reader (AI Eye P4 firmware) burn ─────────────────
-    // Compiles and flashes the TFLite_Sign sketch — the AI Eye board
-    // firmware that carries the model exported from a sign/plate training
-    // run. The S3 side is a normal block program (P4 link blocks). The
-    // workshop custom core (esp32_mannual) provides the camera libraries
-    // and esp_video SDK headers.
+    // ── Sign reader (AI Eye P4 firmware) build ────────────────
+    // When the block program carries the AI Eye firmware block, Compile and
+    // Upload build/flash the exported TFLite_Sign sketch instead of the
+    // block code. The S3 side stays a normal block program (P4 link
+    // blocks). The workshop custom core (esp32_mannual) provides the camera
+    // libraries and esp_video SDK headers.
+    function isSignFirmwareBuild(code) {
+        return code.includes('AIOSCOUT_SIGN_FIRMWARE');
+    }
 
-    function handleSignreaderUpload(ws, args) {
-        const [layerNum, port] = args.map(a => decodeURIComponent(a));
-        console.log(`[signreader] port=${port || 'none'}`);
-
+    function doSignreaderBuild(ws, layerNum, port) {
         const fail = (msg) => {
             sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'addValue', [`[Error] ${msg}\n`]);
-            sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'operateEndError', ['upload', layerNum, '']);
+            sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'operateEndError', [port ? 'upload' : 'compile', layerNum, '']);
         };
-
-        if (!port || port === 'null' || port === 'undefined') {
-            fail('No serial port selected — pick the AI Eye (P4) board port first');
-            return;
-        }
-        if (!currentProcess) buildBusy = false; // self-heal stale flag
-        if (buildBusy) {
-            fail('another compile/upload is still running — wait for it to finish or press Stop first');
-            return;
-        }
 
         const sketchSrc = opts.signReaderDir;
         if (!sketchSrc || !fs.existsSync(path.join(sketchSrc, 'TFLite_Sign.ino'))) {
             fail(`AI Eye sketch not found at ${sketchSrc || '(not configured)'} — export a sign/plate project in AI Training first (or set AIOSCOUT_SIGNREADER_DIR)`);
             return;
         }
+        const coreUserDir = opts.signReaderUserDir;
+        const coreInstalled =
+            fs.existsSync(path.join(coreUserDir, 'hardware', 'esp32_mannual')) ||
+            fs.existsSync(path.join(process.env.HOME || '', 'Documents', 'Arduino', 'hardware', 'esp32_mannual'));
+        if (!coreInstalled) {
+            fail(`workshop core esp32_mannual not installed — unzip esp32_mannual.zip so that esp32p4/ lands under ${path.join(coreUserDir, 'hardware', 'esp32_mannual', '')} (or ~/Documents/Arduino/hardware/esp32_mannual/)`);
+            return;
+        }
 
-        buildBusy = true;
         try {
-            // The workshop custom core (esp32_mannual) carries the camera
-            // libraries and esp_video SDK headers — without it the sketch
-            // cannot compile on the stock core.
-            const coreUserDir = opts.signReaderUserDir;
-            const coreInstalled =
-                fs.existsSync(path.join(coreUserDir, 'hardware', 'esp32_mannual')) ||
-                fs.existsSync(path.join(process.env.HOME || '', 'Documents', 'Arduino', 'hardware', 'esp32_mannual'));
-            if (!coreInstalled) {
-                buildBusy = false;
-                fail(`workshop core esp32_mannual not installed — unzip esp32_mannual.zip so that esp32p4/ lands under ${path.join(coreUserDir, 'hardware', 'esp32_mannual', '')} (or ~/Documents/Arduino/hardware/esp32_mannual/)`);
-                return;
-            }
-            const extraEnv = fs.existsSync(path.join(coreUserDir, 'hardware', 'esp32_mannual'))
-                ? { ARDUINO_DIRECTORIES_USER: coreUserDir }
-                : {};
-
             // Stage into a folder named after the .ino — arduino-cli requires
             // the sketch folder to match the main file name.
             const stageRoot = path.join(opts.dataDir, 'signreader_build');
@@ -773,22 +770,27 @@ ${preprocessToHeader(preprocessPath)}#endif
                 }
             }
 
-            // esptool needs the port exclusively.
-            closeAllSerialPorts();
+            if (port) {
+                // esptool needs the port exclusively.
+                closeAllSerialPorts();
+            }
 
-            const buildDir = path.join(stageRoot, 'build');
-            // -DARDUINO_ARCH_ESP32P4: the stock 3.3.0 platform (which the
-            // custom core derives from) does not define it, and the sketch's
-            // camera branch is gated on it. Harmless where already defined.
-            spawnArduinoCLI(ws, [
-                'compile', '--upload', '-p', port,
+            const extraEnv = fs.existsSync(path.join(coreUserDir, 'hardware', 'esp32_mannual'))
+                ? { ARDUINO_DIRECTORIES_USER: coreUserDir }
+                : {};
+            const cliArgs = [
+                'compile',
+                ...(port ? ['--upload', '-p', port] : []),
                 '-b', `${opts.signReaderFqbnPrefix}:PartitionScheme=${opts.signReaderPartition},CDCOnBoot=cdc`,
+                // -DARDUINO_ARCH_ESP32P4: the stock 3.3.0 platform (which
+                // the custom core derives from) does not define it, and the
+                // sketch's camera branch is gated on it.
                 '--build-property', 'compiler.cpp.extra_flags=-DARDUINO_ARCH_ESP32P4',
-                '--build-path', buildDir, '--libraries', LIBRARIES_DIR,
+                '--build-path', path.join(stageRoot, 'build'),
                 '--no-color', stage
-            ], layerNum, 'upload', extraEnv);
+            ];
+            spawnArduinoCLI(ws, cliArgs, layerNum, port ? 'upload' : 'compile', extraEnv);
         } catch (e) {
-            buildBusy = false;
             fail(`staging failed: ${e.message}`);
         }
     }
@@ -966,7 +968,6 @@ ${preprocessToHeader(preprocessPath)}#endif
                         case 'compile': handleCompile(ws, args); break;
                         case 'upload':  handleUpload(ws, args); break;
                         case 'cancel':  handleCancel(); break;
-                        case 'signreader': handleSignreaderUpload(ws, args); break;
                     }
                 } else if (obj === 'Serial') {
                     switch (func) {

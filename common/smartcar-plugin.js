@@ -614,6 +614,33 @@
             .catch(() => {});
     }
 
+    // The AI Eye firmware program: loading it also switches the board to a
+    // P4 so the native Compile/Upload flow builds/flashes the exported
+    // TFLite_Sign sketch (the server diverts on the program's marker).
+    // Exposed globally so the desktop shell can auto-open it right after a
+    // training export (window.__aioscoutOpenSignFirmware()).
+    function openSignFirmwareProgram() {
+        const confirmMsg = msgText('PLUGIN_ROAD_SIGN_DEMO_CONFIRM', 'Replace the current blocks with this program?');
+        if (workspaceBlockCount() > 0 && !window.confirm(confirmMsg)) return;
+        try {
+            if (window.Mixly && Mixly.Boards && typeof Mixly.Boards.setSelectedBoardByCommandParam === 'function') {
+                Mixly.Boards.setSelectedBoardByCommandParam('esp32:esp32:esp32p4');
+            }
+        } catch (e) { /* board switch best-effort */ }
+        fetch('/programs/p4_sign_firmware.xml')
+            .then((r) => (r.ok ? r.text() : null))
+            .then((xml) => {
+                if (!xml) {
+                    output('[SmartCar] AI Eye firmware template not found.\n');
+                    return;
+                }
+                loadWorkspaceXml(xml);
+                output('[SmartCar] AI Eye firmware program loaded — pick the AI Eye (P4) board port below, then Compile & Upload to flash the exported model firmware.\n');
+            })
+            .catch(() => {});
+    }
+    window.__aioscoutOpenSignFirmware = openSignFirmwareProgram;
+
     // Dropdown attached to the Open button. The item list is built by
     // injectButtons() (openMenuItems) and passed in on first open.
     let openMenuEl = null;
@@ -939,6 +966,11 @@
                 icon: 'icon-play',
                 action: () => loadWorkshopProgram('/programs/turnstile_plate_workshop.xml'),
             },
+            {
+                label: msgText('PLUGIN_AI_EYE_FIRMWARE', 'AI Eye firmware (P4)'),
+                icon: 'icon-flash',
+                action: () => openSignFirmwareProgram(),
+            },
         ];
         const openBtn = document.createElement('button');
         openBtn.id = 'smartcar-open-btn';
@@ -951,26 +983,6 @@
         container.appendChild(openBtn);
         container.appendChild(compileBtn);
         container.appendChild(uploadBtn);
-
-        // Flash the AI Eye (P4) sign/plate firmware — compiles and burns the
-        // exported TFLite_Sign sketch to the port selected below (the P4
-        // board). The S3 side stays a normal block program (P4 link blocks).
-        const p4Btn = document.createElement('button');
-        p4Btn.id = 'smartcar-p4flash-btn';
-        p4Btn.className = 'layui-btn layui-btn-xs layui-btn-primary mixly-nav';
-        p4Btn.innerHTML = '<a class="icon-upload">' + msgText('PLUGIN_FLASH_P4', 'Flash P4 AI Eye') + '</a>';
-        p4Btn.title = msgText('PLUGIN_FLASH_P4_TIP', 'Compile and flash the exported sign/plate firmware to the AI Eye (P4) board on the selected port');
-        p4Btn.onclick = () => {
-            const port = getSelectedPort();
-            if (!port || port === 'null' || port === 'undefined') {
-                alert(msgText('PLUGIN_SELECT_PORT_FIRST', 'Please select a serial port first'));
-                return;
-            }
-            if (!window.confirm(msgText('PLUGIN_FLASH_P4_CONFIRM', 'Flash the AI Eye (P4) firmware? This replaces what is on board {port}.').replace('{port}', port))) return;
-            showLoader(msgText('PLUGIN_FLASH_P4', 'Flash P4 AI Eye'));
-            sendCommand('ArduShell', 'signreader', [1, encodeURIComponent(port)]);
-        };
-        container.appendChild(p4Btn);
 
         // Serial monitor toggle — opens/closes the native monitor for the
         // port selected in the footer, no extra port picking.

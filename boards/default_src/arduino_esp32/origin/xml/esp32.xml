@@ -3479,6 +3479,7 @@
 
   <!-- AI Vision Category -->
   <category id="catTFLiteVision" name="AI Vision" colour="#FF6F00">
+    <block type="aivision_sign_firmware_deploy"></block>
     <block type="aivision_init_eye">
       <field name="USE_PSRAM">true</field>
     </block>

@@ -301,6 +301,8 @@ ZhHans.PLUGIN_SELECT_PORT_FIRST = '请先选择一个串口';
 
 ZhHans.PLUGIN_AI_BODY_STARTER = 'AI Body 入门程序';
 
-ZhHans.PLUGIN_FLASH_P4 = '烧录 P4 AI Eye';
-ZhHans.PLUGIN_FLASH_P4_TIP = '编译导出的路牌/车牌固件并烧录到所选端口上的 AI Eye（P4）板';
-ZhHans.PLUGIN_FLASH_P4_CONFIRM = '烧录 AI Eye（P4）固件？这会覆盖 {port} 板上的现有程序。';
+
+
+ZhHans.AIVISION_SIGN_FW = 'AI Eye 固件（已导出模型）';
+ZhHans.AIVISION_SIGN_FW_TOOLTIP = '编译/上传时构建并烧录承载 AI Training 导出模型的 AI Eye（P4）固件，而不是积木代码。请先选 AI Eye 板的串口。';
+ZhHans.PLUGIN_AI_EYE_FIRMWARE = 'AI Eye 固件 (P4)';

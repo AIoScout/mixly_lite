@@ -301,6 +301,8 @@ ZhHant.PLUGIN_SELECT_PORT_FIRST = '請先選擇一個序列埠';
 
 ZhHant.PLUGIN_AI_BODY_STARTER = 'AI Body 入門程式';
 
-ZhHant.PLUGIN_FLASH_P4 = '燒錄 P4 AI Eye';
-ZhHant.PLUGIN_FLASH_P4_TIP = '編譯匯出的路牌/車牌韌體並燒錄到所選埠上的 AI Eye（P4）板';
-ZhHant.PLUGIN_FLASH_P4_CONFIRM = '燒錄 AI Eye（P4）韌體？這會覆蓋 {port} 板上的現有程式。';
+
+
+ZhHant.AIVISION_SIGN_FW = 'AI Eye 韌體（已匯出模型）';
+ZhHant.AIVISION_SIGN_FW_TOOLTIP = '編譯/上傳時建置並燒錄承載 AI Training 匯出模型的 AI Eye（P4）韌體，而不是積木程式。請先選 AI Eye 板的序列埠。';
+ZhHant.PLUGIN_AI_EYE_FIRMWARE = 'AI Eye 韌體 (P4)';
