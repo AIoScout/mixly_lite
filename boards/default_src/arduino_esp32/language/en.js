@@ -202,8 +202,6 @@ En.SMARTCAR_IMU_SET_FILTER_TOOLTIP = 'Set the IMU gyro and accelerometer filter 
 // AI Vision
 En.AIVISION_INIT_EYE = 'initialize AI Eye (camera + AI)';
 En.AIVISION_INIT_EYE_TOOLTIP = 'Initialize camera, AI model, and communication on the AI Eye board';
-En.AIVISION_INIT_BODY = 'initialize AI Body (receive results)';
-En.AIVISION_INIT_BODY_TOOLTIP = 'Initialize as the AI Body board to receive AI results from the AI Eye';
 En.AIVISION_UPLOAD_MODEL = 'load AI model';
 En.AIVISION_UPLOAD_MODEL_TOOLTIP = 'Upload a .tflite model and labels file';
 En.AIVISION_USE_PSRAM = 'use PSRAM';
@@ -215,8 +213,6 @@ En.AIVISION_PREDICT_INDEX = 'class index';
 En.AIVISION_PREDICT_CONFIDENCE = 'confidence';
 En.AIVISION_CLASS_COUNT = 'number of classes';
 En.AIVISION_CLASS_COUNT_TOOLTIP = 'Get total number of classes in the AI model';
-En.AIVISION_HAS_NEW_RESULT = 'has new AI result';
-En.AIVISION_HAS_NEW_RESULT_TOOLTIP = 'True when a new AI result is available';
 En.AIVISION_SEND_RESULT = 'send AI result to partner';
 En.AIVISION_SEND_RESULT_TOOLTIP = 'Send the last AI prediction to the partner board (auto-sent by default)';
 En.AIVISION_SET_UART_PINS = 'set communication pins';
@@ -234,3 +230,81 @@ En.PLUGIN_STATUS_CONNECTED = 'Connected';
 En.PLUGIN_STATUS_DISCONNECTED = 'Not connected';
 En.AIVISION_NO_MODELS = 'no models yet — train one first';
 En.AIVISION_REFRESH_MODELS = '⟳ refresh';
+
+// SmartCar P4 link + line-following composite blocks
+En.SMARTCAR_P4_START_LINK = 'P4 link start (road-sign)';
+En.SMARTCAR_P4_START_LINK_TOOLTIP = 'Open the UART link to the AI Eye (P4) board and start receiving road-sign results in the background. Use in setup. Add a serial block (115200 baud) to see detection logs.';
+En.SMARTCAR_P4_WAIT_SIGN = 'P4 wait until sign confirmed';
+En.SMARTCAR_P4_WAIT_SIGN_TOOLTIP = 'Start a fresh voting session and wait (blocking) until the AI Eye board confirms one road sign. Stop the car first. Follow with the confirmed-class / confidence blocks, then end the session.';
+En.SMARTCAR_P4_CONFIRMED_LABEL = 'P4 confirmed class #';
+En.SMARTCAR_P4_CONFIRMED_LABEL_TOOLTIP = 'Class number of the confirmed sign. Class numbers follow the class order in the AI Training app (0, 1, 2, ...).';
+En.SMARTCAR_P4_SIGN_IS = 'P4 confirmed sign is class';
+En.SMARTCAR_P4_SIGN_IS_TAIL = '';
+En.SMARTCAR_P4_SIGN_IS_TOOLTIP = 'True when the confirmed sign class number equals the given number. Class numbers follow the class order in the AI Training app.';
+En.SMARTCAR_P4_CONFIRMED_CONF = 'P4 confirmed confidence';
+En.SMARTCAR_P4_CONFIRMED_CONF_TOOLTIP = 'Confidence of the confirmed sign, 0-255.';
+En.SMARTCAR_P4_END_DECISION = 'P4 end decision session';
+En.SMARTCAR_P4_END_DECISION_TOOLTIP = 'End the voting session and let the AI Eye board resume sending results. Call after finishing the sign manoeuvre.';
+En.SMARTCAR_IR_ALL_BLACK = 'all-black on line';
+En.SMARTCAR_IR_ALL_BLACK_TOOLTIP = 'True when all three line sensors see black (a stop marker). Update the IR sensors first.';
+En.SMARTCAR_FOLLOW_UNTIL = 'follow line until';
+En.SMARTCAR_STOP_ALL_BLACK = 'all-black marker';
+En.SMARTCAR_STOP_ALL_BLACK_OR_RFID = 'all-black marker or RFID tag';
+En.SMARTCAR_FOLLOW_UNTIL_TOOLTIP = 'Follow the line with PID speed control until the stop trigger fires, then stop the car and continue with the next blocks (e.g. buzzer, then P4 wait until sign confirmed).';
+
+En.SMARTCAR_WAIT_CENTERED = 'wait until centered on line';
+En.SMARTCAR_WAIT_CENTERED_TOOLTIP = 'Wait until the car is centered on the line again (after a turn). Also stops if a stop trigger fires. Use together with the follow-line-until block.';
+
+En.PLUGIN_ROAD_SIGN_DEMO = 'Road-sign demo';
+En.PLUGIN_ROAD_SIGN_DEMO_TIP = 'Load the road-sign workshop program (replaces the current blocks)';
+En.PLUGIN_ROAD_SIGN_DEMO_CONFIRM = 'Replace the current blocks with the road-sign demo program?';
+
+En.PLUGIN_OPEN_FILE = 'Open from file…';
+
+En.SMARTCAR_STOP_ULTRASONIC = 'ultrasonic obstacle';
+En.SMARTCAR_STOP_DISTANCE = 'cm';
+En.SMARTCAR_OBSTACLE_WAIT = 'wait until obstacle clears';
+En.SMARTCAR_OBSTACLE_RESUME = 'resume beyond cm';
+En.SMARTCAR_OBSTACLE_TIMEOUT = 'timeout s';
+En.SMARTCAR_OBSTACLE_WAIT_TOOLTIP = 'Wait (car stopped) until the distance grows beyond the resume value, or the timeout elapses. Check distance roughly every 100 ms.';
+En.SMARTCAR_RFID_REPORT = 'report new RFID tag';
+En.SMARTCAR_RFID_REPORT_TOOLTIP = 'Check the RFID reader once and print the tag UID to Serial when a new (different) tag appears. Call repeatedly, e.g. in the loop.';
+En.SMARTCAR_LEFT_MOTOR = 'left motor';
+En.SMARTCAR_CLOCKWISE = 'clockwise';
+En.SMARTCAR_ANTICLOCKWISE = 'anticlockwise';
+En.SMARTCAR_DUTY = 'duty %';
+En.SMARTCAR_FOR_MS = 'for ms';
+En.SMARTCAR_LEFT_MOTOR_TOOLTIP = 'Run only the left motor in the given direction at a PWM duty percentage for the given time, then brake. The right motor stays stopped.';
+En.SMARTCAR_LEFT_SEQUENCE = 'left motor startup sequence';
+En.SMARTCAR_CW_MS = 'clockwise ms';
+En.SMARTCAR_PAUSE_MS = 'pause ms';
+En.SMARTCAR_ACW_MS = 'anticlockwise ms';
+En.SMARTCAR_LEFT_SEQUENCE_TOOLTIP = 'The turnstile startup routine: clockwise, brake+pause, anticlockwise, brake — all on the left motor at one duty setting.';
+En.SMARTCAR_P4_PLATE_START = 'P4 link start (licence plate)';
+En.SMARTCAR_P4_PLATE_START_TOOLTIP = 'Open the UART link to the AI Eye (P4) board running the multi-plate firmware. Use in setup; add a serial block (115200 baud) to see detection logs.';
+En.SMARTCAR_P4_PLATE_UPDATE = 'P4 plate update';
+En.SMARTCAR_P4_PLATE_UPDATE_TOOLTIP = 'Process incoming licence-plate packets once. Call every loop.';
+En.SMARTCAR_P4_PLATE_READY = 'P4 plate confirmed?';
+En.SMARTCAR_P4_PLATE_READY_TOOLTIP = 'True when the same plate has been confirmed three frames in a row (confidence 120+). Do the action, then call the action-done block.';
+En.SMARTCAR_P4_PLATE_DONE = 'P4 plate action done';
+En.SMARTCAR_P4_PLATE_DONE_TOOLTIP = 'Tell the AI Eye board the plate action finished so it resumes sending results. Call after the manoeuvre.';
+En.SMARTCAR_P4_PLATE_INDEX = 'P4 latest plate #';
+En.SMARTCAR_P4_PLATE_INDEX_TOOLTIP = 'Plate index (0-253) of the latest valid packet, or 255 when no plate is visible.';
+En.PLUGIN_TURNSTILE_HARDCODE = 'Turnstile startup demo';
+En.PLUGIN_TURNSTILE_CAR = 'Turnstile car demo';
+En.PLUGIN_TURNSTILE_PLATE = 'Turnstile plate demo';
+
+En.PLUGIN_MONITOR = 'Monitor';
+En.PLUGIN_MONITOR_OPEN = 'Open serial monitor for the selected port';
+En.PLUGIN_MONITOR_CLOSE = 'Close serial monitor';
+En.PLUGIN_SELECT_PORT_FIRST = 'Please select a serial port first';
+
+
+
+
+En.PLUGIN_AI_EYE_FIRMWARE = 'AI Eye firmware (P4)';
+
+
+En.AIVISION_SIGN_FW = 'AI Eye firmware';
+En.AIVISION_SIGN_FW_SIGN = 'road signs (image model)';
+En.AIVISION_SIGN_FW_PLATE = 'licence plates (sign model)';

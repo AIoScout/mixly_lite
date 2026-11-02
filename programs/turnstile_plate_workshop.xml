@@ -1,0 +1,54 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <!-- Turnstile plate gate — startup sequence, then the AI Eye board (P4,
+       multi-plate firmware) confirms a hand-written plate three frames in a
+       row and the left motor adds a 0.5 s anticlockwise action. -->
+  <variables></variables>
+  <block type="base_setup" x="0" y="0">
+    <statement name="DO">
+      <block type="serial_begin">
+        <field name="serial_select">Serial</field>
+        <value name="CONTENT"><shadow type="math_number"><field name="NUM">115200</field></shadow></value>
+        <next>
+          <block type="smartcar_p4_plate_start_link">
+            <next>
+              <block type="smartcar_left_motor_sequence">
+                <value name="DUTY"><shadow type="math_number"><field name="NUM">17</field></shadow></value>
+                <value name="CW_MS"><shadow type="math_number"><field name="NUM">700</field></shadow></value>
+                <value name="PAUSE_MS"><shadow type="math_number"><field name="NUM">500</field></shadow></value>
+                <value name="ACW_MS"><shadow type="math_number"><field name="NUM">250</field></shadow></value>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="smartcar_p4_plate_update" x="0" y="300">
+    <next>
+      <block type="controls_if">
+        <value name="IF0">
+          <block type="smartcar_p4_plate_ready"></block>
+        </value>
+        <statement name="DO0">
+          <block type="serial_println">
+            <field name="serial_select">Serial</field>
+            <field name="new_line">println</field>
+            <value name="CONTENT">
+              <block type="smartcar_p4_plate_latest_index"></block>
+            </value>
+            <next>
+              <block type="smartcar_left_motor_run">
+                <field name="DIR">acw</field>
+                <value name="DUTY"><shadow type="math_number"><field name="NUM">17</field></shadow></value>
+                <value name="DURATION"><shadow type="math_number"><field name="NUM">500</field></shadow></value>
+                <next>
+                  <block type="smartcar_p4_plate_action_done"></block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </next>
+  </block>
+</xml>

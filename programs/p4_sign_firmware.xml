@@ -1,0 +1,20 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <!--
+    AI Eye firmware (P4) — Compile & Upload build and flash the exported
+    firmware (camera + trained model) to the AI Eye board.
+    Pick the firmware type on the block: road signs (image projects) or
+    licence plates (sign_ocr projects). In AI Training use "Export Model"
+    and choose the matching sketch folder (TFLite for signs,
+    TFLite_Car_License for plates), then select the AI Eye board's serial
+    port below and press Compile, then Upload.
+    The S3 car runs its own block program (P4 link blocks).
+  -->
+  <variables></variables>
+  <block type="base_setup" x="0" y="0">
+    <statement name="DO">
+      <block type="aivision_sign_firmware_deploy">
+        <field name="FIRMWARE">sign</field>
+      </block>
+    </statement>
+  </block>
+</xml>

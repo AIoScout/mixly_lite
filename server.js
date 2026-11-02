@@ -64,6 +64,29 @@ function resolveOptions(userOptions = {}) {
         smartCarDir: userOptions.smartCarDir || path.join(resourceDir, 'SmartCar'),
         mixlyTfliteDir: userOptions.mixlyTfliteDir || path.join(resourceDir, 'Mixly_TFLite'),
         p4LibDir: userOptions.p4LibDir || process.env.P4_IMX219_LIB || path.join(resourceDir, 'ESP32-P4-IMX219-PoC'),
+        // AI Eye (P4) sign/plate firmware burn chain: the exported sketch
+        // folder, the drop-in dir for Koil's camera Arduino libraries, and
+        // the esp32p4 partition scheme (default = 1.2 MB APP, fits the
+        // placeholder model; real 3.9 MB models need e.g. default_8MB).
+        // Resolve the first existing candidate — dev layouts keep the
+        // sketches at the workspace root (TFLite_Car_License) and inside the
+        // training superproject (TFLite).
+        signReaderDir: process.env.AIOSCOUT_SIGNREADER_DIR
+            || [path.join(resourceDir, '..', 'TFLite_Car_License')].find((d) => fs.existsSync(path.join(d, 'TFLite_Sign.ino')))
+            || path.join(resourceDir, '..', 'TFLite_Car_License'),
+        imageFirmwareDir: process.env.AIOSCOUT_IMAGE_FIRMWARE_DIR
+            || [
+                path.join(resourceDir, '..', 'TFLite'),
+                path.join(resourceDir, '..', 'Google-Teachable-Machine-TFLite-model-training', 'TFLite')
+            ].find((d) => fs.existsSync(path.join(d, 'TFLite.ino')))
+            || path.join(resourceDir, '..', 'TFLite'),
+        // Userspace dir holding the workshop custom core (esp32_mannual,
+        // esp32 3.3.0 + bundled ESP32_P4_OV5647/IMX219 camera libraries +
+        // the esp_video SDK headers). When absent, arduino-cli falls back to
+        // ~/Documents/Arduino where the tutorial install lives.
+        signReaderUserDir: process.env.AIOSCOUT_SIGNREADER_ARDUINO_USER || path.join(resourceDir, '.arduino-user'),
+        signReaderFqbnPrefix: process.env.AIOSCOUT_SIGNREADER_FQBN || 'esp32_mannual:esp32p4:esp32p4',
+        signReaderPartition: process.env.AIOSCOUT_SIGNREADER_PARTITION || 'default_8MB',
         modelLibraryDir: userOptions.modelLibraryDir || process.env.AIOSCOUT_MODEL_LIBRARY || null,
         onReady: userOptions.onReady || null,
     };
@@ -82,6 +105,12 @@ function createServer(userOptions = {}) {
 
     // ── State (per server instance) ────────────────────────────
     let currentProcess = null;
+    // True from the moment a compile/upload starts mutating the shared
+    // sketch/library/build dirs until its arduino-cli exits. Serializes
+    // builds: a second task racing the first would rmSync the library and
+    // build directories out from under the running compiler and wedge the
+    // shell state until restart.
+    let buildBusy = false;
     const activeSerialPorts = new Map();
     const modelSessions = new Map(); // sessionId -> {tflitePath, labelsPath, createdAt}
     let BOARD_DEFAULTS = {};
@@ -514,13 +543,27 @@ ${preprocessToHeader(preprocessPath)}#endif
         return preferred;
     }
 
-    function runArduinoCLI(ws, cliArgs, layerNum, type) {
+    // Spawn arduino-cli with no guards — callers must already hold the
+    // buildBusy lock (runArduinoCLI, or handleSignreaderUpload after its own
+    // staging under the lock).
+    function spawnArduinoCLI(ws, cliArgs, layerNum, type, extraEnv) {
         console.log(`[cli] ${opts.arduinoCli} ${cliArgs.join(' ')}`);
-        currentProcess = execFile(opts.arduinoCli, cliArgs, {
-            env: { ...process.env, LANG: 'en_US.UTF-8' },
+        const proc = execFile(opts.arduinoCli, cliArgs, {
+            env: {
+                ...process.env,
+                ...(extraEnv || {}),
+                LANG: 'en_US.UTF-8'
+            },
             maxBuffer: 10 * 1024 * 1024
         }, (error, stdout, stderr) => {
-            currentProcess = null;
+            // Only the owning process may clear the state: a killed or
+            // superseded process exiting late must not null the pointer
+            // (which would swallow the live run's output stream) while
+            // the next task holds it.
+            if (currentProcess === proc) {
+                currentProcess = null;
+                buildBusy = false;
+            }
             const output = (stdout || '') + (stderr || '');
             const target = aliveWs(ws);
 
@@ -532,6 +575,7 @@ ${preprocessToHeader(preprocessPath)}#endif
                 sendCommand(target, 'Mixly.WebSocket.ArduShell', 'operateSuccess', [type, layerNum, '', '115200', '0s']);
             }
         });
+        currentProcess = proc;
 
         // Stream output in real-time
         const stream = (data) => {
@@ -539,14 +583,43 @@ ${preprocessToHeader(preprocessPath)}#endif
             if (!currentProcess) return;
             sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'addValue', [chunk]);
         };
-        currentProcess.stdout?.on('data', stream);
-        currentProcess.stderr?.on('data', stream);
+        proc.stdout?.on('data', stream);
+        proc.stderr?.on('data', stream);
+    }
+
+    function runArduinoCLI(ws, cliArgs, layerNum, type) {
+        // Self-heal a stale busy flag (no process, no run) and refuse to
+        // spawn while another build owns the shared directories.
+        if (!currentProcess) buildBusy = false;
+        if (buildBusy || currentProcess) {
+            sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'operateEndError',
+                [type, layerNum, 'Error: another compile/upload is still running — wait for it to finish or press Stop first']);
+            return;
+        }
+        buildBusy = true;
+        spawnArduinoCLI(ws, cliArgs, layerNum, type);
     }
 
     // ── Command Handlers ───────────────────────────────────────
     function handleCompile(ws, args) {
         const [layerNum, boardType, code, modelSessionId] = args.map(a => decodeURIComponent(a));
         console.log(`[compile] board=${boardType} model=${modelSessionId || 'none'}`);
+
+        if (!currentProcess) buildBusy = false; // self-heal stale flag
+        if (buildBusy) {
+            sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'operateEndError',
+                ['compile', layerNum, 'Error: another compile/upload is still running — wait for it to finish or press Stop first']);
+            return;
+        }
+        buildBusy = true;
+
+        // AI Eye firmware program: build the exported TFLite_Sign sketch
+        // instead of the block code.
+        if (isSignFirmwareBuild(code)) {
+            console.log('[compile] AI Eye firmware build');
+            doSignreaderBuild(ws, layerNum, null, code);
+            return;
+        }
 
         const useTFLite = code.includes('Mixly_TFLite');
 
@@ -560,6 +633,7 @@ ${preprocessToHeader(preprocessPath)}#endif
                     deployMixlyTFLiteLib(modelSessionId || null);
                 } catch (e) {
                     console.error('[tflite] deploy failed:', e.message);
+                    buildBusy = false;
                     sendCommand(ws, 'Mixly.WebSocket.ArduShell', 'addValue', [`[Error] ${e.message}\n`]);
                     sendCommand(ws, 'Mixly.WebSocket.ArduShell', 'operateEndError', ['compile', layerNum, '']);
                     return;
@@ -596,6 +670,22 @@ ${preprocessToHeader(preprocessPath)}#endif
             return;
         }
 
+        if (!currentProcess) buildBusy = false; // self-heal stale flag
+        if (buildBusy) {
+            sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'operateEndError',
+                ['upload', layerNum, 'Error: another compile/upload is still running — wait for it to finish or press Stop first']);
+            return;
+        }
+        buildBusy = true;
+
+        // AI Eye firmware program: flash the exported TFLite_Sign sketch
+        // instead of the block code.
+        if (isSignFirmwareBuild(code)) {
+            console.log(`[upload] AI Eye firmware flash port=${port}`);
+            doSignreaderBuild(ws, layerNum, port, code);
+            return;
+        }
+
         const useTFLite = code.includes('Mixly_TFLite');
 
         const doUpload = () => {
@@ -611,6 +701,7 @@ ${preprocessToHeader(preprocessPath)}#endif
                     deployMixlyTFLiteLib(modelSessionId || null);
                 } catch (e) {
                     console.error('[tflite] deploy failed:', e.message);
+                    buildBusy = false;
                     sendCommand(ws, 'Mixly.WebSocket.ArduShell', 'addValue', [`[Error] ${e.message}\n`]);
                     sendCommand(ws, 'Mixly.WebSocket.ArduShell', 'operateEndError', ['upload', layerNum, '']);
                     return;
@@ -640,8 +731,88 @@ ${preprocessToHeader(preprocessPath)}#endif
     function handleCancel() {
         if (currentProcess) {
             console.log('[cancel]');
+            // The killed process's exit callback clears currentProcess and
+            // buildBusy (identity-checked), keeping the lock lifecycle in
+            // one place.
             currentProcess.kill('SIGTERM');
-            currentProcess = null;
+        }
+    }
+
+    // ── Sign reader (AI Eye P4 firmware) build ────────────────
+    // When the block program carries the AI Eye firmware block, Compile and
+    // Upload build/flash the exported TFLite_Sign sketch instead of the
+    // block code. The S3 side stays a normal block program (P4 link
+    // blocks). The workshop custom core (esp32_mannual) provides the camera
+    // libraries and esp_video SDK headers.
+    function isSignFirmwareBuild(code) {
+        return code.includes('AIOSCOUT_SIGN_FIRMWARE') || code.includes('AIOSCOUT_PLATE_FIRMWARE');
+    }
+
+    // Which AI Eye firmware sketch this build targets: the image-project
+    // road-sign firmware (TFLite.ino) or the sign_ocr plate firmware
+    // (TFLite_Sign.ino in TFLite_Car_License).
+    function signFirmwareSketchDir(code) {
+        if (code.includes('AIOSCOUT_PLATE_FIRMWARE')) return opts.signReaderDir;
+        if (code.includes('AIOSCOUT_SIGN_FIRMWARE')) return opts.imageFirmwareDir;
+        return null;
+    }
+
+    function doSignreaderBuild(ws, layerNum, port, code) {
+        const fail = (msg) => {
+            sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'addValue', [`[Error] ${msg}\n`]);
+            sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'operateEndError', [port ? 'upload' : 'compile', layerNum, '']);
+        };
+
+        const sketchSrc = signFirmwareSketchDir(code || '');
+        const mainIno = sketchSrc === opts.signReaderDir ? 'TFLite_Sign.ino' : 'TFLite.ino';
+        if (!sketchSrc || !fs.existsSync(path.join(sketchSrc, mainIno))) {
+            fail(`AI Eye sketch not found at ${sketchSrc || '(not configured)'} — export the trained model from AI Training first (or set AIOSCOUT_SIGNREADER_DIR / AIOSCOUT_IMAGE_FIRMWARE_DIR)`);
+            return;
+        }
+        const coreUserDir = opts.signReaderUserDir;
+        const coreInstalled =
+            fs.existsSync(path.join(coreUserDir, 'hardware', 'esp32_mannual')) ||
+            fs.existsSync(path.join(process.env.HOME || '', 'Documents', 'Arduino', 'hardware', 'esp32_mannual'));
+        if (!coreInstalled) {
+            fail(`workshop core esp32_mannual not installed — unzip esp32_mannual.zip so that esp32p4/ lands under ${path.join(coreUserDir, 'hardware', 'esp32_mannual', '')} (or ~/Documents/Arduino/hardware/esp32_mannual/)`);
+            return;
+        }
+
+        try {
+            // Stage into a folder named after the .ino — arduino-cli requires
+            // the sketch folder to match the main file name.
+            const stageRoot = path.join(opts.dataDir, 'signreader_build');
+            const stage = path.join(stageRoot, mainIno.replace(/\.ino$/, ''));
+            fs.rmSync(stageRoot, { recursive: true, force: true });
+            ensureDir(stage);
+            for (const f of fs.readdirSync(sketchSrc)) {
+                if (/\.(ino|cpp|c|h|hpp|txt)$/.test(f)) {
+                    fs.copyFileSync(path.join(sketchSrc, f), path.join(stage, f));
+                }
+            }
+
+            if (port) {
+                // esptool needs the port exclusively.
+                closeAllSerialPorts();
+            }
+
+            const extraEnv = fs.existsSync(path.join(coreUserDir, 'hardware', 'esp32_mannual'))
+                ? { ARDUINO_DIRECTORIES_USER: coreUserDir }
+                : {};
+            const cliArgs = [
+                'compile',
+                ...(port ? ['--upload', '-p', port] : []),
+                '-b', `${opts.signReaderFqbnPrefix}:PartitionScheme=${opts.signReaderPartition},CDCOnBoot=cdc`,
+                // -DARDUINO_ARCH_ESP32P4: the stock 3.3.0 platform (which
+                // the custom core derives from) does not define it, and the
+                // sketch's camera branch is gated on it.
+                '--build-property', 'compiler.cpp.extra_flags=-DARDUINO_ARCH_ESP32P4',
+                '--build-path', path.join(stageRoot, 'build'),
+                '--no-color', stage
+            ];
+            spawnArduinoCLI(ws, cliArgs, layerNum, port ? 'upload' : 'compile', extraEnv);
+        } catch (e) {
+            fail(`staging failed: ${e.message}`);
         }
     }
 
@@ -867,7 +1038,9 @@ ${preprocessToHeader(preprocessPath)}#endif
             return new Promise((resolve) => {
                 if (currentProcess) {
                     try { currentProcess.kill('SIGTERM'); } catch { /* already gone */ }
-                    currentProcess = null;
+                    // Let the exit callback own the state clear (identity-
+                    // checked); nulling here would let its late callback
+                    // clear the lock during a newer run.
                 }
                 for (const [, entry] of activeSerialPorts) {
                     try { entry.serialPort.close(); } catch { /* already closed */ }

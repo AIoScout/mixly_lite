@@ -28,17 +28,6 @@ export const aivision_init_eye = {
 // AI BODY INIT (S3 — UART RX)
 // ============================================
 
-export const aivision_init_body = {
-    init: function () {
-        this.setColour(AIVISION_HUE);
-        this.appendDummyInput()
-            .appendField(Blockly.Msg.AIVISION_INIT_BODY || "initialize AI Body (receive results)");
-        this.setPreviousStatement(true, null);
-        this.setNextStatement(true, null);
-        this.setTooltip(Blockly.Msg.AIVISION_INIT_BODY_TOOLTIP || "Initialize as the AI Body board to receive AI results from the AI Eye");
-    }
-};
-
 // ============================================
 // UPLOAD MODEL
 // ============================================
@@ -149,16 +138,6 @@ export const aivision_class_count = {
 // HAS NEW RESULT
 // ============================================
 
-export const aivision_has_new_result = {
-    init: function () {
-        this.setColour(AIVISION_HUE);
-        this.appendDummyInput()
-            .appendField(Blockly.Msg.AIVISION_HAS_NEW_RESULT || "has new AI result");
-        this.setOutput(true, Boolean);
-        this.setTooltip(Blockly.Msg.AIVISION_HAS_NEW_RESULT_TOOLTIP || "True when a new AI result is available");
-    }
-};
-
 // ============================================
 // SEND RESULT
 // ============================================
@@ -195,5 +174,24 @@ export const aivision_set_uart_pins = {
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setTooltip(Blockly.Msg.AIVISION_SET_UART_PINS_TOOLTIP || "Set UART communication pins (default: TX=43, RX=44)");
+    }
+};
+
+// ============================================
+// AI EYE SIGN/PLATE FIRMWARE PROGRAM
+// ============================================
+
+export const aivision_sign_firmware_deploy = {
+    init: function () {
+        this.setColour(AIVISION_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.AIVISION_SIGN_FW || "AI Eye firmware")
+            .appendField(new Blockly.FieldDropdown([
+                [Blockly.Msg.AIVISION_SIGN_FW_SIGN || "road signs (image model)", "sign"],
+                [Blockly.Msg.AIVISION_SIGN_FW_PLATE || "licence plates (sign model)", "plate"]
+            ]), "FIRMWARE");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.AIVISION_SIGN_FW_TOOLTIP || "Compile & Upload build the AI Eye (P4) firmware that carries the model exported from AI Training — not the block code. Select the AI Eye board's serial port first.");
     }
 };

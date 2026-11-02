@@ -199,8 +199,6 @@ ZhHant.SMARTCAR_PID_UPDATE_LOOP_TOOLTIP = '更新編碼器轉速並將 PID 輸�
 // AI Vision
 ZhHant.AIVISION_INIT_EYE = '初始化 AI 眼睛（攝影機+AI）';
 ZhHant.AIVISION_INIT_EYE_TOOLTIP = '在 AI 眼睛板上初始化攝影機、AI模型和通信';
-ZhHant.AIVISION_INIT_BODY = '初始化 AI 身體（接收結果）';
-ZhHant.AIVISION_INIT_BODY_TOOLTIP = '初始化為 AI 身體板，接收來自 AI 眼睛的辨識結果';
 ZhHant.AIVISION_UPLOAD_MODEL = '載入 AI 模型';
 ZhHant.AIVISION_UPLOAD_MODEL_TOOLTIP = '上傳 .tflite 模型和標籤檔案';
 ZhHant.AIVISION_USE_PSRAM = '使用 PSRAM';
@@ -212,8 +210,6 @@ ZhHant.AIVISION_PREDICT_INDEX = '類別編號';
 ZhHant.AIVISION_PREDICT_CONFIDENCE = '信心度';
 ZhHant.AIVISION_CLASS_COUNT = '類別數量';
 ZhHant.AIVISION_CLASS_COUNT_TOOLTIP = '取得 AI 模型中的類別總數';
-ZhHant.AIVISION_HAS_NEW_RESULT = '有新 AI 結果';
-ZhHant.AIVISION_HAS_NEW_RESULT_TOOLTIP = '當有新的 AI 結果時為真';
 ZhHant.AIVISION_SEND_RESULT = '發送 AI 結果給夥伴';
 ZhHant.AIVISION_SEND_RESULT_TOOLTIP = '將上次 AI 預測結果發送給夥伴板（預設自動發送）';
 ZhHant.AIVISION_SET_UART_PINS = '設定通訊引腳';
@@ -230,3 +226,81 @@ ZhHant.PLUGIN_STATUS_CONNECTED = '已連接';
 ZhHant.PLUGIN_STATUS_DISCONNECTED = '未連接';
 ZhHant.AIVISION_NO_MODELS = '還沒有模型 — 先去訓練一個';
 ZhHant.AIVISION_REFRESH_MODELS = '⟳ 重新整理';
+
+// SmartCar P4 連結 + 循線複合積木
+ZhHant.SMARTCAR_P4_START_LINK = 'P4 連結啟動（路牌識別）';
+ZhHant.SMARTCAR_P4_START_LINK_TOOLTIP = '開啟與 AI Eye（P4）板的 UART 連結並在背景接收路牌識別結果。放在 setup 裡。配合串列積木（115200）可查看識別日誌。';
+ZhHant.SMARTCAR_P4_WAIT_SIGN = 'P4 等待確認路牌';
+ZhHant.SMARTCAR_P4_WAIT_SIGN_TOOLTIP = '開啟新一輪投票並（阻塞）等待 AI Eye 板確認一張路牌。請先停車。之後用確認類別/信心度積木取值，最後結束工作階段。';
+ZhHant.SMARTCAR_P4_CONFIRMED_LABEL = 'P4 確認類別號';
+ZhHant.SMARTCAR_P4_CONFIRMED_LABEL_TOOLTIP = '已確認路牌的類別號。類別號與 AI Training 應用裡的類別順序一致（0、1、2 …）。';
+ZhHant.SMARTCAR_P4_SIGN_IS = 'P4 確認路牌是類別';
+ZhHant.SMARTCAR_P4_SIGN_IS_TAIL = '';
+ZhHant.SMARTCAR_P4_SIGN_IS_TOOLTIP = '當確認路牌的類別號等於給定數字時為真。類別號與 AI Training 應用裡的類別順序一致。';
+ZhHant.SMARTCAR_P4_CONFIRMED_CONF = 'P4 確認信心度';
+ZhHant.SMARTCAR_P4_CONFIRMED_CONF_TOOLTIP = '已確認路牌的信心度，0-255。';
+ZhHant.SMARTCAR_P4_END_DECISION = 'P4 結束決策工作階段';
+ZhHant.SMARTCAR_P4_END_DECISION_TOOLTIP = '結束投票工作階段，讓 AI Eye 板恢復發送結果。完成路牌動作後呼叫。';
+ZhHant.SMARTCAR_IR_ALL_BLACK = '線感測器全黑';
+ZhHant.SMARTCAR_IR_ALL_BLACK_TOOLTIP = '三個循跡感測器都看到黑色（停車標線）時為真。需要先更新 IR 感測器。';
+ZhHant.SMARTCAR_FOLLOW_UNTIL = '循線直到';
+ZhHant.SMARTCAR_STOP_ALL_BLACK = '全黑標線';
+ZhHant.SMARTCAR_STOP_ALL_BLACK_OR_RFID = '全黑標線或 RFID 卡';
+ZhHant.SMARTCAR_FOLLOW_UNTIL_TOOLTIP = '用 PID 速度控制循線，直到停車條件觸發後停車，繼續執行後續積木（例如蜂鳴、再 P4 等待確認路牌）。';
+
+ZhHant.SMARTCAR_WAIT_CENTERED = '等待回到線中央';
+ZhHant.SMARTCAR_WAIT_CENTERED_TOOLTIP = '等待小車重新回到線的中央（轉彎後）。若停車條件觸發也會停車。需與循線積木一起使用。';
+
+ZhHant.PLUGIN_ROAD_SIGN_DEMO = '路牌識別範例';
+ZhHant.PLUGIN_ROAD_SIGN_DEMO_TIP = '載入路牌識別 workshop 積木程式（會取代目前積木）';
+ZhHant.PLUGIN_ROAD_SIGN_DEMO_CONFIRM = '用路牌識別範例取代目前的積木程式？';
+
+ZhHant.PLUGIN_OPEN_FILE = '從本機檔案開啟…';
+
+ZhHant.SMARTCAR_STOP_ULTRASONIC = '超音波障礙';
+ZhHant.SMARTCAR_STOP_DISTANCE = 'cm';
+ZhHant.SMARTCAR_OBSTACLE_WAIT = '等待障礙移開';
+ZhHant.SMARTCAR_OBSTACLE_RESUME = '恢復距離 cm';
+ZhHant.SMARTCAR_OBSTACLE_TIMEOUT = '逾時 s';
+ZhHant.SMARTCAR_OBSTACLE_WAIT_TOOLTIP = '（停車狀態）等待距離大於恢復值，或逾時結束。約每 100 ms 測一次距。';
+ZhHant.SMARTCAR_RFID_REPORT = '回報新 RFID 卡';
+ZhHant.SMARTCAR_RFID_REPORT_TOOLTIP = '檢查一次 RFID 讀卡器，出現新卡（與上次不同）時把卡號列印到序列埠。請在迴圈裡反覆呼叫。';
+ZhHant.SMARTCAR_LEFT_MOTOR = '左馬達';
+ZhHant.SMARTCAR_CLOCKWISE = '順時針';
+ZhHant.SMARTCAR_ANTICLOCKWISE = '逆時針';
+ZhHant.SMARTCAR_DUTY = '功率 %';
+ZhHant.SMARTCAR_FOR_MS = '持續 ms';
+ZhHant.SMARTCAR_LEFT_MOTOR_TOOLTIP = '只驅動左馬達按給定方向以給定 PWM 功率百分比運行一段時間後煞車。右馬達保持停止。';
+ZhHant.SMARTCAR_LEFT_SEQUENCE = '左馬達啟動序列';
+ZhHant.SMARTCAR_CW_MS = '順時針 ms';
+ZhHant.SMARTCAR_PAUSE_MS = '暫停 ms';
+ZhHant.SMARTCAR_ACW_MS = '逆時針 ms';
+ZhHant.SMARTCAR_LEFT_SEQUENCE_TOOLTIP = '閘門啟動流程：順時針、煞車暫停、逆時針、煞車——全部由左馬達以同一功率完成。';
+ZhHant.SMARTCAR_P4_PLATE_START = 'P4 連結啟動（車牌識別）';
+ZhHant.SMARTCAR_P4_PLATE_START_TOOLTIP = '開啟與執行多車牌韌體的 AI Eye（P4）板的 UART 連結。放在 setup 裡；配合串列積木（115200）可查看識別日誌。';
+ZhHant.SMARTCAR_P4_PLATE_UPDATE = 'P4 車牌收包';
+ZhHant.SMARTCAR_P4_PLATE_UPDATE_TOOLTIP = '處理一次收到的車牌封包。每個迴圈都要呼叫。';
+ZhHant.SMARTCAR_P4_PLATE_READY = 'P4 車牌已確認？';
+ZhHant.SMARTCAR_P4_PLATE_READY_TOOLTIP = '同一車牌連續三幀確認（信心度 120+）時為真。執行動作後呼叫「動作完成」積木。';
+ZhHant.SMARTCAR_P4_PLATE_DONE = 'P4 車牌動作完成';
+ZhHant.SMARTCAR_P4_PLATE_DONE_TOOLTIP = '告訴 AI Eye 板車牌動作已結束，恢復發送結果。動作完成後呼叫。';
+ZhHant.SMARTCAR_P4_PLATE_INDEX = 'P4 最新車牌號';
+ZhHant.SMARTCAR_P4_PLATE_INDEX_TOOLTIP = '最新有效封包的車牌號（0-253），看不到車牌時為 255。';
+ZhHant.PLUGIN_TURNSTILE_HARDCODE = '閘門啟動示範';
+ZhHant.PLUGIN_TURNSTILE_CAR = '閘門小車示範';
+ZhHant.PLUGIN_TURNSTILE_PLATE = '閘門車牌示範';
+
+ZhHant.PLUGIN_MONITOR = '監視器';
+ZhHant.PLUGIN_MONITOR_OPEN = '開啟所選埠的序列監視器';
+ZhHant.PLUGIN_MONITOR_CLOSE = '關閉序列監視器';
+ZhHant.PLUGIN_SELECT_PORT_FIRST = '請先選擇一個序列埠';
+
+
+
+
+ZhHant.PLUGIN_AI_EYE_FIRMWARE = 'AI Eye 韌體 (P4)';
+
+
+ZhHant.AIVISION_SIGN_FW = 'AI Eye 韌體';
+ZhHant.AIVISION_SIGN_FW_SIGN = '路牌（image 模型）';
+ZhHant.AIVISION_SIGN_FW_PLATE = '車牌（sign 模型）';

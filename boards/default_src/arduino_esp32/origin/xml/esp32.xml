@@ -3424,18 +3424,68 @@
       </value>
     </block>
     <block type="smartcar_pid_update_loop"></block>
+    <block type="smartcar_follow_line_until_stop"></block>
+    <block type="smartcar_wait_until_centered"></block>
+    <block type="smartcar_ir_all_black"></block>
+    <block type="smartcar_p4_start_link"></block>
+    <block type="smartcar_p4_wait_sign_confirmed"></block>
+    <block type="smartcar_p4_sign_is_class">
+      <value name="CLASS">
+        <block type="math_number">
+          <field name="NUM">0</field>
+        </block>
+      </value>
+    </block>
+    <block type="smartcar_p4_confirmed_label"></block>
+    <block type="smartcar_p4_confirmed_confidence"></block>
+    <block type="smartcar_p4_end_decision"></block>
+    <block type="smartcar_obstacle_wait_clear">
+      <value name="RESUME_CM">
+        <block type="math_number"><field name="NUM">11</field></block>
+      </value>
+      <value name="TIMEOUT_S">
+        <block type="math_number"><field name="NUM">10</field></block>
+      </value>
+    </block>
+    <block type="smartcar_rfid_report_new_tag"></block>
+    <block type="smartcar_left_motor_run">
+      <value name="DUTY">
+        <block type="math_number"><field name="NUM">17</field></block>
+      </value>
+      <value name="DURATION">
+        <block type="math_number"><field name="NUM">500</field></block>
+      </value>
+    </block>
+    <block type="smartcar_left_motor_sequence">
+      <value name="DUTY">
+        <block type="math_number"><field name="NUM">17</field></block>
+      </value>
+      <value name="CW_MS">
+        <block type="math_number"><field name="NUM">700</field></block>
+      </value>
+      <value name="PAUSE_MS">
+        <block type="math_number"><field name="NUM">500</field></block>
+      </value>
+      <value name="ACW_MS">
+        <block type="math_number"><field name="NUM">250</field></block>
+      </value>
+    </block>
+    <block type="smartcar_p4_plate_start_link"></block>
+    <block type="smartcar_p4_plate_update"></block>
+    <block type="smartcar_p4_plate_ready"></block>
+    <block type="smartcar_p4_plate_action_done"></block>
+    <block type="smartcar_p4_plate_latest_index"></block>
   </category>
 
   <!-- AI Vision Category -->
   <category id="catTFLiteVision" name="AI Vision" colour="#FF6F00">
+    <block type="aivision_sign_firmware_deploy"></block>
     <block type="aivision_init_eye">
       <field name="USE_PSRAM">true</field>
     </block>
-    <block type="aivision_init_body"></block>
     <block type="aivision_upload_model"></block>
     <block type="aivision_predict"></block>
     <block type="aivision_class_count"></block>
-    <block type="aivision_has_new_result"></block>
     <block type="aivision_send_result"></block>
     <block type="aivision_set_uart_pins">
       <value name="TX_PIN">

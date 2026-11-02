@@ -1,0 +1,148 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <!--
+    Road-sign workshop program — ESP32-S3 smart car + AI Eye (P4) over UART
+    Follows the line until the all-black marker, honks twice, waits for the
+    AI Eye board to confirm a road sign, then turns left (class 0) /
+    right (class 1) / stops (any other class). Class numbers follow the
+    class order in the AI Training app.
+    Wiring: P4 TX(11) → S3 RX(44), P4 RX(10) ← S3 TX(43), common GND.
+  -->
+  <variables></variables>
+
+  <!-- Setup -->
+  <block type="base_setup" x="0" y="0">
+    <statement name="DO">
+      <block type="serial_begin">
+        <field name="serial_select">Serial</field>
+        <value name="CONTENT">
+          <shadow type="math_number"><field name="NUM">115200</field></shadow>
+        </value>
+        <next>
+          <block type="smartcar_p4_start_link"></block>
+        </next>
+      </block>
+    </statement>
+  </block>
+
+  <!-- PID gains + target RPM (run once, before following) -->
+  <block type="smartcar_set_pid_gains" x="0" y="120">
+    <value name="KP"><shadow type="math_number"><field name="NUM">3.07</field></shadow></value>
+    <value name="KI"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+    <value name="KD"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+    <next>
+      <block type="smartcar_set_target_rpm">
+        <value name="TARGET"><shadow type="math_number"><field name="NUM">300</field></shadow></value>
+      </block>
+    </next>
+  </block>
+
+  <!-- Loop -->
+  <block type="smartcar_follow_line_until_stop" x="0" y="260">
+    <field name="TRIGGER">allblack</field>
+    <next>
+      <block type="smartcar_play_tone">
+        <value name="FREQUENCY"><shadow type="math_number"><field name="NUM">880</field></shadow></value>
+        <value name="DURATION"><shadow type="math_number"><field name="NUM">500</field></shadow></value>
+        <next>
+          <block type="controls_delay">
+            <field name="UNIT">millis</field>
+            <value name="DELAY_TIME"><shadow type="math_number"><field name="NUM">500</field></shadow></value>
+            <next>
+              <block type="smartcar_buzzer_stop">
+                <next>
+                  <block type="smartcar_play_tone">
+                    <value name="FREQUENCY"><shadow type="math_number"><field name="NUM">880</field></shadow></value>
+                    <value name="DURATION"><shadow type="math_number"><field name="NUM">500</field></shadow></value>
+                    <next>
+                      <block type="controls_delay">
+                        <field name="UNIT">millis</field>
+                        <value name="DELAY_TIME"><shadow type="math_number"><field name="NUM">500</field></shadow></value>
+                        <next>
+                          <block type="smartcar_buzzer_stop">
+                            <next>
+                              <block type="controls_delay">
+                                <field name="UNIT">millis</field>
+                                <value name="DELAY_TIME"><shadow type="math_number"><field name="NUM">1000</field></shadow></value>
+                                <next>
+                                  <block type="smartcar_p4_wait_sign_confirmed">
+                                    <next>
+                                      <block type="controls_if">
+                                        <mutation elseif="1" else="1"></mutation>
+                                        <value name="IF0">
+                                          <block type="smartcar_p4_sign_is_class">
+                                            <value name="CLASS"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+                                          </block>
+                                        </value>
+                                        <statement name="DO0">
+                                          <block type="smartcar_move_forward">
+                                            <next>
+                                              <block type="controls_delay">
+                                                <field name="UNIT">millis</field>
+                                                <value name="DELAY_TIME"><shadow type="math_number"><field name="NUM">600</field></shadow></value>
+                                                <next>
+                                                  <block type="smartcar_rotate_left">
+                                                    <next>
+                                                      <block type="smartcar_wait_until_centered">
+                                                        <next>
+                                                          <block type="smartcar_stop"></block>
+                                                        </next>
+                                                      </block>
+                                                    </next>
+                                                  </block>
+                                                </next>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </statement>
+                                        <value name="IF1">
+                                          <block type="smartcar_p4_sign_is_class">
+                                            <value name="CLASS"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+                                          </block>
+                                        </value>
+                                        <statement name="DO1">
+                                          <block type="smartcar_move_forward">
+                                            <next>
+                                              <block type="controls_delay">
+                                                <field name="UNIT">millis</field>
+                                                <value name="DELAY_TIME"><shadow type="math_number"><field name="NUM">600</field></shadow></value>
+                                                <next>
+                                                  <block type="smartcar_rotate_right">
+                                                    <next>
+                                                      <block type="smartcar_wait_until_centered">
+                                                        <next>
+                                                          <block type="smartcar_stop"></block>
+                                                        </next>
+                                                      </block>
+                                                    </next>
+                                                  </block>
+                                                </next>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </statement>
+                                        <statement name="ELSE">
+                                          <block type="smartcar_stop"></block>
+                                        </statement>
+                                        <next>
+                                          <block type="smartcar_p4_end_decision"></block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </next>
+  </block>
+</xml>

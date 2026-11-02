@@ -551,7 +551,11 @@
     // anything else (S3) → AI Body program.
     function starterForCurrentBoard() {
         const fqbn = String(getBoardType() || '');
-        return fqbn.indexOf('p4') !== -1 ? '/programs/p4_ai_eye.xml' : '/programs/s3_ai_body.xml';
+        if (fqbn.indexOf('p4') !== -1) return '/programs/p4_ai_eye.xml';
+        // S3 default: the road-sign workshop program (the core classroom
+        // flow). The S3 never runs the vision model — recognition results
+        // arrive from the AI Eye (P4) over UART (P4 link blocks).
+        return '/programs/road_sign_workshop.xml';
     }
 
     // The workspace Mixly actually renders — the one with a flyout attached.
@@ -588,6 +592,93 @@
                 output('[SmartCar] Starter program loaded — pick a model on the "load AI model" block, then Compile & Upload.\n');
             })
             .catch(() => {});
+    }
+
+    // ── Built-in workshop programs (Open ▾ menu) ────────────
+    // Loads a bundled block program, asking before replacing user blocks.
+    function loadWorkshopProgram(url) {
+        const hasBlocks = workspaceBlockCount() > 0;
+        if (hasBlocks && !window.confirm(msgText('PLUGIN_ROAD_SIGN_DEMO_CONFIRM', 'Replace the current blocks with this program?'))) {
+            return;
+        }
+        fetch(url)
+            .then((r) => (r.ok ? r.text() : null))
+            .then((xml) => {
+                if (!xml) {
+                    output('[SmartCar] Program file not found: ' + url + '\n');
+                    return;
+                }
+                loadWorkspaceXml(xml);
+                output('[SmartCar] Road-sign demo loaded — set the sign class numbers if your training order differs, then Compile & Upload to the S3 car.\n');
+            })
+            .catch(() => {});
+    }
+
+    // The AI Eye firmware program: loading it also switches the board to a
+    // P4 so the native Compile/Upload flow builds/flashes the exported
+    // TFLite_Sign sketch (the server diverts on the program's marker).
+    // Exposed globally so the desktop shell can auto-open it right after a
+    // training export (window.__aioscoutOpenSignFirmware()).
+    function openSignFirmwareProgram() {
+        const confirmMsg = msgText('PLUGIN_ROAD_SIGN_DEMO_CONFIRM', 'Replace the current blocks with this program?');
+        if (workspaceBlockCount() > 0 && !window.confirm(confirmMsg)) return;
+        try {
+            // setSelectedBoard takes the board's display name (boards.json).
+            if (window.Mixly && Mixly.Boards && typeof Mixly.Boards.setSelectedBoard === 'function') {
+                Mixly.Boards.setSelectedBoard('ESP32P4 Dev Module');
+            }
+        } catch (e) { /* board switch best-effort */ }
+        fetch('/programs/p4_sign_firmware.xml')
+            .then((r) => (r.ok ? r.text() : null))
+            .then((xml) => {
+                if (!xml) {
+                    output('[SmartCar] AI Eye firmware template not found.\n');
+                    return;
+                }
+                loadWorkspaceXml(xml);
+                output('[SmartCar] AI Eye firmware program loaded — pick the AI Eye (P4) board port below, then Compile & Upload to flash the exported model firmware.\n');
+            })
+            .catch(() => {});
+    }
+    window.__aioscoutOpenSignFirmware = openSignFirmwareProgram;
+
+    // Dropdown attached to the Open button. The item list is built by
+    // injectButtons() (openMenuItems) and passed in on first open.
+    let openMenuEl = null;
+    function toggleOpenMenu() {
+        if (openMenuEl) { closeOpenMenu(); return; }
+        const btn = document.getElementById('smartcar-open-btn');
+        if (!btn) return;
+        const items = btn.__openMenuItems || [];
+        openMenuEl = document.createElement('div');
+        openMenuEl.id = 'smartcar-open-menu';
+        openMenuEl.style.cssText =
+            'position:absolute;z-index:99999;background:#fff;border:1px solid #d2d2d2;' +
+            'box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:180px;padding:4px 0;';
+        items.forEach((item) => {
+            const row = document.createElement('div');
+            row.style.cssText =
+                'padding:6px 14px;font-size:12px;cursor:pointer;white-space:nowrap;color:#333;';
+            row.onmouseenter = () => { row.style.background = '#f2f2f2'; };
+            row.onmouseleave = () => { row.style.background = 'transparent'; };
+            row.innerHTML = '<i class="' + (item.icon || 'icon-folder-open') + '" style="margin-right:8px;"></i>' + item.label;
+            row.onclick = () => { closeOpenMenu(); item.action(); };
+            openMenuEl.appendChild(row);
+        });
+        document.body.appendChild(openMenuEl);
+        const rect = btn.getBoundingClientRect();
+        openMenuEl.style.left = Math.max(0, rect.left) + 'px';
+        openMenuEl.style.top = (rect.bottom + 2) + 'px';
+        setTimeout(() => {
+            document.addEventListener('mousedown', openMenuOutside, true);
+        }, 0);
+    }
+    function closeOpenMenu() {
+        if (openMenuEl) { openMenuEl.remove(); openMenuEl = null; }
+        document.removeEventListener('mousedown', openMenuOutside, true);
+    }
+    function openMenuOutside(e) {
+        if (openMenuEl && !openMenuEl.contains(e.target)) closeOpenMenu();
     }
 
     function updateSaveIndicator() {
@@ -842,12 +933,47 @@
         saveBtn.innerHTML = '<a class="icon-save">' + msgText('PLUGIN_SAVE', 'Save') + '</a>';
         saveBtn.onclick = doSave;
 
-        // Open button
+        // Open button — a dropdown menu: open a local file (the classic
+        // Open) plus built-in workshop programs. Add entries here to grow
+        // the menu.
+        const openMenuItems = [
+            {
+                label: msgText('PLUGIN_OPEN_FILE', 'Open from file…'),
+                icon: 'icon-folder-open',
+                action: () => doOpen(null),
+            },
+            {
+                label: msgText('PLUGIN_ROAD_SIGN_DEMO', 'Road-sign project'),
+                icon: 'icon-play',
+                action: () => loadWorkshopProgram('/programs/road_sign_workshop.xml'),
+            },
+            {
+                label: msgText('PLUGIN_TURNSTILE_HARDCODE', 'Turnstile startup demo'),
+                icon: 'icon-play',
+                action: () => loadWorkshopProgram('/programs/turnstile_hardcode_workshop.xml'),
+            },
+            {
+                label: msgText('PLUGIN_TURNSTILE_CAR', 'Turnstile car demo'),
+                icon: 'icon-play',
+                action: () => loadWorkshopProgram('/programs/turnstile_car_workshop.xml'),
+            },
+            {
+                label: msgText('PLUGIN_TURNSTILE_PLATE', 'Turnstile plate demo'),
+                icon: 'icon-play',
+                action: () => loadWorkshopProgram('/programs/turnstile_plate_workshop.xml'),
+            },
+            {
+                label: msgText('PLUGIN_AI_EYE_FIRMWARE', 'AI Eye firmware (P4)'),
+                icon: 'icon-flash',
+                action: () => openSignFirmwareProgram(),
+            },
+        ];
         const openBtn = document.createElement('button');
         openBtn.id = 'smartcar-open-btn';
         openBtn.className = 'layui-btn layui-btn-xs layui-btn-primary mixly-nav';
-        openBtn.innerHTML = '<a class="icon-folder-open">' + msgText('PLUGIN_OPEN', 'Open') + '</a>';
-        openBtn.onclick = () => doOpen(null);
+        openBtn.innerHTML = '<a class="icon-folder-open">' + msgText('PLUGIN_OPEN', 'Open') + ' ▾</a>';
+        openBtn.onclick = () => toggleOpenMenu();
+        openBtn.__openMenuItems = openMenuItems;
 
         container.appendChild(saveBtn);
         container.appendChild(openBtn);

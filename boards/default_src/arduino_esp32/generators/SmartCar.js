@@ -277,3 +277,359 @@ export const smartcar_pid_update_loop = function (_, generator) {
 
     return code;
 };
+
+// ============================================
+// P4 UART LINK GENERATORS (road-sign recognition)
+// ============================================
+
+const smartcarAddP4Include = function (generator) {
+    generator.definitions_['include_SmartCar_P4UartReceiver'] = '#include "SmartCar/P4UartReceiver.hpp"';
+};
+
+export const smartcar_p4_start_link = function (_, generator) {
+    smartcarAddP4Include(generator);
+    generator.definitions_['smartcar_p4_update_task'] =
+        'void SmartCarP4UpdateTask(void* pvParameters) {\n'
+        + '  (void)pvParameters;\n'
+        + '  for (;;) {\n'
+        + '    P4UartReceiver::Update();\n'
+        + '    vTaskDelay(1);\n'
+        + '  }\n'
+        + '}';
+    generator.setups_['smartcar_p4_start'] =
+        'P4UartReceiver::StartCommunication();\n'
+        + '  xTaskCreatePinnedToCore(SmartCarP4UpdateTask, "p4_uart", 4096, NULL, 3, NULL, 0);';
+
+    return '';
+};
+
+export const smartcar_p4_wait_sign_confirmed = function (_, generator) {
+    smartcarAddP4Include(generator);
+
+    var code = 'P4UartReceiver::BeginDecisionCollection();\n';
+    code += 'while (!P4UartReceiver::IsDecisionCollectionReady()) { delay(1); }\n';
+    code += 'while (!P4UartReceiver::HasConfirmedSign()) { delay(10); }\n';
+    return code;
+};
+
+export const smartcar_p4_confirmed_label = function (_, generator) {
+    smartcarAddP4Include(generator);
+
+    return ['P4UartReceiver::GetConfirmedLabelId()', generator.ORDER_ATOMIC];
+};
+
+export const smartcar_p4_sign_is_class = function (_, generator) {
+    smartcarAddP4Include(generator);
+
+    var cls = generator.valueToCode(this, 'CLASS', generator.ORDER_ATOMIC) || '0';
+    return ['(P4UartReceiver::GetConfirmedLabelId() == (' + cls + '))', generator.ORDER_ATOMIC];
+};
+
+export const smartcar_p4_confirmed_confidence = function (_, generator) {
+    smartcarAddP4Include(generator);
+
+    return ['P4UartReceiver::GetConfirmedConfidence()', generator.ORDER_ATOMIC];
+};
+
+export const smartcar_p4_end_decision = function (_, generator) {
+    smartcarAddP4Include(generator);
+
+    return 'P4UartReceiver::EndDecisionCollection();\n';
+};
+
+// ============================================
+// LINE FOLLOWING COMPOSITE GENERATORS
+// ============================================
+
+export const smartcar_ir_all_black = function (_, generator) {
+    generator.definitions_['include_SmartCar_IRSensors'] = '#include "SmartCar/IRSensors.hpp"';
+    generator.setups_['smartcar_init_ir'] = 'IRSensors::Init();';
+
+    var code = '(IRSensors::IRData.Read_IR_L && IRSensors::IRData.Read_IR_M && IRSensors::IRData.Read_IR_R)';
+    return [code, generator.ORDER_ATOMIC];
+};
+
+export const smartcar_follow_line_until_stop = function (_, generator) {
+    smartcarAddPIDDefinitions(generator);
+    smartcarAddUltraHelpers(generator);
+    generator.definitions_['include_SmartCar_Movement'] = '#include "SmartCar/Movement.hpp"';
+    generator.definitions_['include_SmartCar_IRSensors'] = '#include "SmartCar/IRSensors.hpp"';
+    generator.definitions_['include_SmartCar_RFIDReader'] = '#include "SmartCar/RFIDReader.hpp"';
+    generator.setups_['smartcar_init_motors'] = 'MotorControl::DCMotorControl::Init();';
+    generator.setups_['smartcar_init_encoder'] = 'Encoder::Init();';
+    generator.setups_['smartcar_init_ir'] = 'IRSensors::Init();';
+    generator.setups_['smartcar_init_rfid'] = 'RFIDReader::Init();';
+    generator.definitions_['include_SmartCar_UltrasonicSensor'] = '#include "SmartCar/UltrasonicSensor.hpp"';
+    generator.definitions_['include_SmartCar_Pinout'] = '#include "SmartCar/Pinout.hpp"';
+    generator.setups_['smartcar_init_ultrasonic'] = 'UltrasonicSensor::Init();';
+
+    generator.definitions_['smartcar_follow_helpers'] =
+        'static float SmartCarSampleDistanceCm();\n'
+        + 'static bool SmartCarUseRfidStop = false;\n'
+        + 'static bool SmartCarUseUltrasonicStop = false;\n'
+        + 'static float SmartCarStopDistanceCm = 10.0f;\n'
+        + 'static bool SmartCarRfidStopLatch = false;\n'
+        + 'static void SmartCarRfidPollLatch() {\n'
+        + '  static String latchedUid = "";\n'
+        + '  static uint8_t missedReads = 0;\n'
+        + '  byte atqa[2];\n'
+        + '  byte atqaSize = sizeof(atqa);\n'
+        + '  const byte status = RFIDReader::mfrc522.PICC_WakeupA(atqa, &atqaSize);\n'
+        + '  if ((status == MFRC522::STATUS_OK || status == MFRC522::STATUS_COLLISION) &&\n'
+        + '      RFIDReader::mfrc522.PICC_ReadCardSerial()) {\n'
+        + '    const String tagUid = RFIDReader::GetTagUID();\n'
+        + '    if (latchedUid.length() == 0 || tagUid != latchedUid) {\n'
+        + '      latchedUid = tagUid;\n'
+        + '      SmartCarRfidStopLatch = true;\n'
+        + '    }\n'
+        + '    missedReads = 0;\n'
+        + '    RFIDReader::mfrc522.PICC_HaltA();\n'
+        + '  } else if (latchedUid.length() > 0) {\n'
+        + '    if (++missedReads >= 4) {\n'
+        + '      latchedUid = "";\n'
+        + '      missedReads = 0;\n'
+        + '    }\n'
+        + '  }\n'
+        + '}\n'
+        + 'static bool SmartCarStopTriggered() {\n'
+        + '  if (IRSensors::IRData.Read_IR_L && IRSensors::IRData.Read_IR_M && IRSensors::IRData.Read_IR_R) {\n'
+        + '    return true;\n'
+        + '  }\n'
+        + '  if (SmartCarUseUltrasonicStop && SmartCarSampleDistanceCm() <= SmartCarStopDistanceCm) {\n'
+        + '    return true;\n'
+        + '  }\n'
+        + '  if (SmartCarUseRfidStop) {\n'
+        + '    SmartCarRfidPollLatch();\n'
+        + '  }\n'
+        + '  return SmartCarRfidStopLatch;\n'
+        + '}\n'
+        + 'static bool SmartCarWaitCenteredOrStop() {\n'
+        + '  for (;;) {\n'
+        + '    delay(10);\n'
+        + '    IRSensors::IRData.state = IRSensors::ReadSensorState(IRSensors::IRData);\n'
+        + '    if (SmartCarStopTriggered()) {\n'
+        + '      Movement::Stop();\n'
+        + '      return true;\n'
+        + '    }\n'
+        + '    if (!IRSensors::IRData.Read_IR_L && IRSensors::IRData.Read_IR_M && !IRSensors::IRData.Read_IR_R) {\n'
+        + '      return false;\n'
+        + '    }\n'
+        + '  }\n'
+        + '}\n'
+        + 'static bool SmartCarWaitDurationOrStop(uint32_t durationMs) {\n'
+        + '  const uint32_t start = millis();\n'
+        + '  while (millis() - start < durationMs) {\n'
+        + '    delay(10);\n'
+        + '    IRSensors::IRData.state = IRSensors::ReadSensorState(IRSensors::IRData);\n'
+        + '    if (SmartCarStopTriggered()) {\n'
+        + '      Movement::Stop();\n'
+        + '      return true;\n'
+        + '    }\n'
+        + '  }\n'
+        + '  return false;\n'
+        + '}\n'
+        + 'static void SmartCarFollowUntilStop() {\n'
+        + '  for (;;) {\n'
+        + '    delay(10);\n'
+        + '    Encoder::RPMCounterFromEncoder(LeftWheelRPM);\n'
+        + '    Encoder::RPMCounterFromEncoder(RightWheelRPM);\n'
+        + '    MotorControl::LeftWheel.Speed = constrain((int)LeftWheelPID.PID_realize(LeftWheelRPM.rpm), 0, 4095);\n'
+        + '    MotorControl::RightWheel.Speed = constrain((int)RightWheelPID.PID_realize(RightWheelRPM.rpm), 0, 4095);\n'
+        + '    IRSensors::IRData.state = IRSensors::ReadSensorState(IRSensors::IRData);\n'
+        + '    if (SmartCarStopTriggered()) {\n'
+        + '      Movement::Stop();\n'
+        + '      return;\n'
+        + '    }\n'
+        + '    const bool readL = IRSensors::IRData.Read_IR_L;\n'
+        + '    const bool readM = IRSensors::IRData.Read_IR_M;\n'
+        + '    const bool readR = IRSensors::IRData.Read_IR_R;\n'
+        + '    if (!readL && readM && !readR) {\n'
+        + '      Movement::MoveForward();\n'
+        + '    } else if (readL && readM && !readR) {\n'
+        + '      Movement::MoveForward();\n'
+        + '      if (SmartCarWaitDurationOrStop(600)) { return; }\n'
+        + '      Movement::RotateLeft();\n'
+        + '      if (SmartCarWaitCenteredOrStop()) { return; }\n'
+        + '    } else if (readL && !readM && readR) {\n'
+        + '      Movement::Stop();\n'
+        + '    } else if (!readL && readM && readR) {\n'
+        + '      Movement::MoveForward();\n'
+        + '      if (SmartCarWaitDurationOrStop(600)) { return; }\n'
+        + '      Movement::RotateRight();\n'
+        + '      if (SmartCarWaitCenteredOrStop()) { return; }\n'
+        + '    } else if (!readL && !readM && readR) {\n'
+        + '      Movement::RotateRight();\n'
+        + '      if (SmartCarWaitCenteredOrStop()) { return; }\n'
+        + '    } else if (readL && !readM && !readR) {\n'
+        + '      Movement::RotateLeft();\n'
+        + '      if (SmartCarWaitCenteredOrStop()) { return; }\n'
+        + '    }\n'
+        + '  }\n'
+        + '}';
+
+    var trigger = this.getFieldValue('TRIGGER');
+    var useRfid = trigger === 'allblack_rfid' ? 'true' : 'false';
+    var useUltra = trigger === 'ultrasonic' ? 'true' : 'false';
+    var dist = generator.valueToCode(this, 'DIST', generator.ORDER_ATOMIC) || '10';
+
+    var code = 'SmartCarUseRfidStop = ' + useRfid + ';\n';
+    code += 'SmartCarUseUltrasonicStop = ' + useUltra + ';\n';
+    code += 'SmartCarStopDistanceCm = ' + dist + ';\n';
+    code += 'SmartCarFollowUntilStop();\n';
+    return code;
+};
+
+export const smartcar_wait_until_centered = function (_, generator) {
+    // SmartCarWaitCenteredOrStop() comes from the follow-line-until helper
+    // definitions; the block is documented as requiring that block.
+    return 'SmartCarWaitCenteredOrStop();\n';
+};
+
+// ============================================
+// OBSTACLE / RFID / LEFT-MOTOR / PLATE GENERATORS
+// ============================================
+
+const smartcarAddUltraHelpers = function (generator) {
+    generator.definitions_['include_SmartCar_UltrasonicSensor'] = '#include "SmartCar/UltrasonicSensor.hpp"';
+    generator.definitions_['include_SmartCar_Pinout'] = '#include "SmartCar/Pinout.hpp"';
+    generator.setups_['smartcar_init_ultrasonic'] = 'UltrasonicSensor::Init();';
+    generator.definitions_['smartcar_ultra_defs'] =
+        'static float SmartCarSampleDistanceCm() {\n'
+        + '  static bool sampled = false;\n'
+        + '  static uint32_t lastSampleMs = 0;\n'
+        + '  static float lastCm = 999.0f;\n'
+        + '  const uint32_t now = millis();\n'
+        + '  if (sampled && now - lastSampleMs < 100) {\n'
+        + '    return lastCm;\n'
+        + '  }\n'
+        + '  sampled = true;\n'
+        + '  lastSampleMs = now;\n'
+        + '  digitalWrite(Pinout::UltrasonicTrigPin, LOW);\n'
+        + '  delayMicroseconds(2);\n'
+        + '  digitalWrite(Pinout::UltrasonicTrigPin, HIGH);\n'
+        + '  delayMicroseconds(10);\n'
+        + '  digitalWrite(Pinout::UltrasonicTrigPin, LOW);\n'
+        + '  const unsigned long echoUs = pulseIn(Pinout::UltrasonicEchoPin, HIGH, 25000);\n'
+        + '  lastCm = echoUs == 0 ? 999.0f : echoUs * 0.017f;\n'
+        + '  return lastCm;\n'
+        + '}\n'
+        + 'static void SmartCarWaitObstacleClear(float resumeCm, uint32_t timeoutMs) {\n'
+        + '  const uint32_t start = millis();\n'
+        + '  for (;;) {\n'
+        + '    delay(100);\n'
+        + '    if (SmartCarSampleDistanceCm() > resumeCm) {\n'
+        + '      return;\n'
+        + '    }\n'
+        + '    if (timeoutMs > 0 && millis() - start >= timeoutMs) {\n'
+        + '      return;\n'
+        + '    }\n'
+        + '  }\n'
+        + '}';
+};
+
+export const smartcar_obstacle_wait_clear = function (_, generator) {
+    smartcarAddUltraHelpers(generator);
+
+    var resume = generator.valueToCode(this, 'RESUME_CM', generator.ORDER_ATOMIC) || '11';
+    var timeout = generator.valueToCode(this, 'TIMEOUT_S', generator.ORDER_ATOMIC) || '10';
+
+    return 'SmartCarWaitObstacleClear(' + resume + ', ' + timeout + ' * 1000);\n';
+};
+
+export const smartcar_rfid_report_new_tag = function (_, generator) {
+    generator.definitions_['include_SmartCar_RFIDReader'] = '#include "SmartCar/RFIDReader.hpp"';
+    generator.setups_['smartcar_init_rfid'] = 'RFIDReader::Init();';
+
+    generator.definitions_['smartcar_rfid_report'] =
+        'static void SmartCarRfidReportNewTag() {\n'
+        + '  static String lastUid = "";\n'
+        + '  static uint8_t missedReads = 0;\n'
+        + '  byte atqa[2];\n'
+        + '  byte atqaSize = sizeof(atqa);\n'
+        + '  const byte status = RFIDReader::mfrc522.PICC_WakeupA(atqa, &atqaSize);\n'
+        + '  if ((status == MFRC522::STATUS_OK || status == MFRC522::STATUS_COLLISION) &&\n'
+        + '      RFIDReader::mfrc522.PICC_ReadCardSerial()) {\n'
+        + '    const String uid = RFIDReader::GetTagUID();\n'
+        + '    if (uid != lastUid) {\n'
+        + '      Serial.print("RFID tag: ");\n'
+        + '      Serial.println(uid);\n'
+        + '      lastUid = uid;\n'
+        + '    }\n'
+        + '    missedReads = 0;\n'
+        + '    RFIDReader::mfrc522.PICC_HaltA();\n'
+        + '  } else if (lastUid.length() > 0) {\n'
+        + '    if (++missedReads >= 4) {\n'
+        + '      lastUid = "";\n'
+        + '      missedReads = 0;\n'
+        + '    }\n'
+        + '  }\n'
+        + '}';
+
+    return 'SmartCarRfidReportNewTag();\n';
+};
+
+export const smartcar_left_motor_run = function (_, generator) {
+    generator.definitions_['include_SmartCar_MotorControl'] = '#include "SmartCar/MotorControl.hpp"';
+    generator.setups_['smartcar_init_motors'] = 'MotorControl::DCMotorControl::Init();';
+
+    var dir = this.getFieldValue('DIR');
+    var duty = generator.valueToCode(this, 'DUTY', generator.ORDER_ATOMIC) || '17';
+    var dur = generator.valueToCode(this, 'DURATION', generator.ORDER_ATOMIC) || '500';
+    var call = dir === 'acw' ? 'TurnAntiClockwise' : 'TurnClockwise';
+
+    var code = 'MotorControl::LeftWheel.Speed = (int)((4095L * ' + duty + ' + 50) / 100);\n';
+    code += 'MotorControl::DCMotorControl::' + call + '(MotorControl::LeftWheel);\n';
+    code += 'delay(' + dur + ');\n';
+    code += 'MotorControl::DCMotorControl::Stop(MotorControl::LeftWheel);\n';
+    return code;
+};
+
+export const smartcar_left_motor_sequence = function (_, generator) {
+    generator.definitions_['include_SmartCar_MotorControl'] = '#include "SmartCar/MotorControl.hpp"';
+    generator.setups_['smartcar_init_motors'] = 'MotorControl::DCMotorControl::Init();';
+
+    var duty = generator.valueToCode(this, 'DUTY', generator.ORDER_ATOMIC) || '17';
+    var cw = generator.valueToCode(this, 'CW_MS', generator.ORDER_ATOMIC) || '700';
+    var pause = generator.valueToCode(this, 'PAUSE_MS', generator.ORDER_ATOMIC) || '500';
+    var acw = generator.valueToCode(this, 'ACW_MS', generator.ORDER_ATOMIC) || '250';
+
+    var code = 'MotorControl::LeftWheel.Speed = (int)((4095L * ' + duty + ' + 50) / 100);\n';
+    code += 'MotorControl::DCMotorControl::TurnClockwise(MotorControl::LeftWheel);\n';
+    code += 'delay(' + cw + ');\n';
+    code += 'MotorControl::DCMotorControl::Stop(MotorControl::LeftWheel);\n';
+    code += 'delay(' + pause + ');\n';
+    code += 'MotorControl::DCMotorControl::TurnAntiClockwise(MotorControl::LeftWheel);\n';
+    code += 'delay(' + acw + ');\n';
+    code += 'MotorControl::DCMotorControl::Stop(MotorControl::LeftWheel);\n';
+    return code;
+};
+
+const smartcarAddPlateInclude = function (generator) {
+    generator.definitions_['include_SmartCar_P4PlateReceiver'] = '#include "SmartCar/P4PlateReceiver.hpp"';
+};
+
+export const smartcar_p4_plate_start_link = function (_, generator) {
+    smartcarAddPlateInclude(generator);
+    generator.setups_['smartcar_p4_plate_start'] = 'P4PlateReceiver::StartCommunication();';
+    return '';
+};
+
+export const smartcar_p4_plate_update = function (_, generator) {
+    smartcarAddPlateInclude(generator);
+    return 'P4PlateReceiver::Update();\n';
+};
+
+export const smartcar_p4_plate_ready = function (_, generator) {
+    smartcarAddPlateInclude(generator);
+    return ['P4PlateReceiver::IsReadyForAction()', generator.ORDER_ATOMIC];
+};
+
+export const smartcar_p4_plate_action_done = function (_, generator) {
+    smartcarAddPlateInclude(generator);
+    return 'P4PlateReceiver::CompleteAction();\n';
+};
+
+export const smartcar_p4_plate_latest_index = function (_, generator) {
+    smartcarAddPlateInclude(generator);
+    return ['P4PlateReceiver::GetLabelId()', generator.ORDER_ATOMIC];
+};
