@@ -234,3 +234,31 @@ En.PLUGIN_STATUS_CONNECTED = 'Connected';
 En.PLUGIN_STATUS_DISCONNECTED = 'Not connected';
 En.AIVISION_NO_MODELS = 'no models yet — train one first';
 En.AIVISION_REFRESH_MODELS = '⟳ refresh';
+
+// SmartCar P4 link + line-following composite blocks
+En.SMARTCAR_P4_START_LINK = 'P4 link start (road-sign)';
+En.SMARTCAR_P4_START_LINK_TOOLTIP = 'Open the UART link to the AI Eye (P4) board and start receiving road-sign results in the background. Use in setup. Add a serial block (115200 baud) to see detection logs.';
+En.SMARTCAR_P4_WAIT_SIGN = 'P4 wait until sign confirmed';
+En.SMARTCAR_P4_WAIT_SIGN_TOOLTIP = 'Start a fresh voting session and wait (blocking) until the AI Eye board confirms one road sign. Stop the car first. Follow with the confirmed-class / confidence blocks, then end the session.';
+En.SMARTCAR_P4_CONFIRMED_LABEL = 'P4 confirmed class #';
+En.SMARTCAR_P4_CONFIRMED_LABEL_TOOLTIP = 'Class number of the confirmed sign. Class numbers follow the class order in the AI Training app (0, 1, 2, ...).';
+En.SMARTCAR_P4_SIGN_IS = 'P4 confirmed sign is class';
+En.SMARTCAR_P4_SIGN_IS_TAIL = '';
+En.SMARTCAR_P4_SIGN_IS_TOOLTIP = 'True when the confirmed sign class number equals the given number. Class numbers follow the class order in the AI Training app.';
+En.SMARTCAR_P4_CONFIRMED_CONF = 'P4 confirmed confidence';
+En.SMARTCAR_P4_CONFIRMED_CONF_TOOLTIP = 'Confidence of the confirmed sign, 0-255.';
+En.SMARTCAR_P4_END_DECISION = 'P4 end decision session';
+En.SMARTCAR_P4_END_DECISION_TOOLTIP = 'End the voting session and let the AI Eye board resume sending results. Call after finishing the sign manoeuvre.';
+En.SMARTCAR_IR_ALL_BLACK = 'all-black on line';
+En.SMARTCAR_IR_ALL_BLACK_TOOLTIP = 'True when all three line sensors see black (a stop marker). Update the IR sensors first.';
+En.SMARTCAR_FOLLOW_UNTIL = 'follow line until';
+En.SMARTCAR_STOP_ALL_BLACK = 'all-black marker';
+En.SMARTCAR_STOP_ALL_BLACK_OR_RFID = 'all-black marker or RFID tag';
+En.SMARTCAR_FOLLOW_UNTIL_TOOLTIP = 'Follow the line with PID speed control until the stop trigger fires, then stop the car and continue with the next blocks (e.g. buzzer, then P4 wait until sign confirmed).';
+
+En.SMARTCAR_WAIT_CENTERED = 'wait until centered on line';
+En.SMARTCAR_WAIT_CENTERED_TOOLTIP = 'Wait until the car is centered on the line again (after a turn). Also stops if a stop trigger fires. Use together with the follow-line-until block.';
+
+En.PLUGIN_ROAD_SIGN_DEMO = 'Road-sign demo';
+En.PLUGIN_ROAD_SIGN_DEMO_TIP = 'Load the road-sign workshop program (replaces the current blocks)';
+En.PLUGIN_ROAD_SIGN_DEMO_CONFIRM = 'Replace the current blocks with the road-sign demo program?';

@@ -230,3 +230,31 @@ ZhHant.PLUGIN_STATUS_CONNECTED = '已連接';
 ZhHant.PLUGIN_STATUS_DISCONNECTED = '未連接';
 ZhHant.AIVISION_NO_MODELS = '還沒有模型 — 先去訓練一個';
 ZhHant.AIVISION_REFRESH_MODELS = '⟳ 重新整理';
+
+// SmartCar P4 連結 + 循線複合積木
+ZhHant.SMARTCAR_P4_START_LINK = 'P4 連結啟動（路牌識別）';
+ZhHant.SMARTCAR_P4_START_LINK_TOOLTIP = '開啟與 AI Eye（P4）板的 UART 連結並在背景接收路牌識別結果。放在 setup 裡。配合串列積木（115200）可查看識別日誌。';
+ZhHant.SMARTCAR_P4_WAIT_SIGN = 'P4 等待確認路牌';
+ZhHant.SMARTCAR_P4_WAIT_SIGN_TOOLTIP = '開啟新一輪投票並（阻塞）等待 AI Eye 板確認一張路牌。請先停車。之後用確認類別/信心度積木取值，最後結束工作階段。';
+ZhHant.SMARTCAR_P4_CONFIRMED_LABEL = 'P4 確認類別號';
+ZhHant.SMARTCAR_P4_CONFIRMED_LABEL_TOOLTIP = '已確認路牌的類別號。類別號與 AI Training 應用裡的類別順序一致（0、1、2 …）。';
+ZhHant.SMARTCAR_P4_SIGN_IS = 'P4 確認路牌是類別';
+ZhHant.SMARTCAR_P4_SIGN_IS_TAIL = '';
+ZhHant.SMARTCAR_P4_SIGN_IS_TOOLTIP = '當確認路牌的類別號等於給定數字時為真。類別號與 AI Training 應用裡的類別順序一致。';
+ZhHant.SMARTCAR_P4_CONFIRMED_CONF = 'P4 確認信心度';
+ZhHant.SMARTCAR_P4_CONFIRMED_CONF_TOOLTIP = '已確認路牌的信心度，0-255。';
+ZhHant.SMARTCAR_P4_END_DECISION = 'P4 結束決策工作階段';
+ZhHant.SMARTCAR_P4_END_DECISION_TOOLTIP = '結束投票工作階段，讓 AI Eye 板恢復發送結果。完成路牌動作後呼叫。';
+ZhHant.SMARTCAR_IR_ALL_BLACK = '線感測器全黑';
+ZhHant.SMARTCAR_IR_ALL_BLACK_TOOLTIP = '三個循跡感測器都看到黑色（停車標線）時為真。需要先更新 IR 感測器。';
+ZhHant.SMARTCAR_FOLLOW_UNTIL = '循線直到';
+ZhHant.SMARTCAR_STOP_ALL_BLACK = '全黑標線';
+ZhHant.SMARTCAR_STOP_ALL_BLACK_OR_RFID = '全黑標線或 RFID 卡';
+ZhHant.SMARTCAR_FOLLOW_UNTIL_TOOLTIP = '用 PID 速度控制循線，直到停車條件觸發後停車，繼續執行後續積木（例如蜂鳴、再 P4 等待確認路牌）。';
+
+ZhHant.SMARTCAR_WAIT_CENTERED = '等待回到線中央';
+ZhHant.SMARTCAR_WAIT_CENTERED_TOOLTIP = '等待小車重新回到線的中央（轉彎後）。若停車條件觸發也會停車。需與循線積木一起使用。';
+
+ZhHant.PLUGIN_ROAD_SIGN_DEMO = '路牌識別範例';
+ZhHant.PLUGIN_ROAD_SIGN_DEMO_TIP = '載入路牌識別 workshop 積木程式（會取代目前積木）';
+ZhHant.PLUGIN_ROAD_SIGN_DEMO_CONFIRM = '用路牌識別範例取代目前的積木程式？';

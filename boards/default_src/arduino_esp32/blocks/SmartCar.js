@@ -338,3 +338,117 @@ export const smartcar_pid_update_loop = {
         this.setTooltip(Blockly.Msg.SMARTCAR_PID_UPDATE_LOOP_TOOLTIP || "Update encoder RPM and apply PID output to both wheel speeds");
     }
 };
+
+// ============================================
+// P4 UART LINK BLOCKS (road-sign recognition)
+// ============================================
+
+export const smartcar_p4_start_link = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_P4_START_LINK || "P4 link start (road-sign)");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.SMARTCAR_P4_START_LINK_TOOLTIP || "Open the UART link to the AI Eye (P4) board and start receiving road-sign results in the background. Use in setup. Add a serial block (115200 baud) to see detection logs.");
+    }
+};
+
+export const smartcar_p4_wait_sign_confirmed = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_P4_WAIT_SIGN || "P4 wait until sign confirmed");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.SMARTCAR_P4_WAIT_SIGN_TOOLTIP || "Start a fresh voting session and wait (blocking) until the AI Eye board confirms one road sign. Stop the car first. Follow with the confirmed-class / confidence blocks, then end the session.");
+    }
+};
+
+export const smartcar_p4_confirmed_label = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_P4_CONFIRMED_LABEL || "P4 confirmed class #");
+        this.setOutput(true, Number);
+        this.setTooltip(Blockly.Msg.SMARTCAR_P4_CONFIRMED_LABEL_TOOLTIP || "Class number of the confirmed sign. Class numbers follow the class order in the AI Training app (0, 1, 2, ...).");
+    }
+};
+
+export const smartcar_p4_sign_is_class = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_P4_SIGN_IS || "P4 confirmed sign is class");
+        this.appendValueInput("CLASS")
+            .setCheck(Number);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_P4_SIGN_IS_TAIL || "");
+        this.setInputsInline(true);
+        this.setOutput(true, Boolean);
+        this.setTooltip(Blockly.Msg.SMARTCAR_P4_SIGN_IS_TOOLTIP || "True when the confirmed sign's class number equals the given number. Class numbers follow the class order in the AI Training app.");
+    }
+};
+
+export const smartcar_p4_confirmed_confidence = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_P4_CONFIRMED_CONF || "P4 confirmed confidence");
+        this.setOutput(true, Number);
+        this.setTooltip(Blockly.Msg.SMARTCAR_P4_CONFIRMED_CONF_TOOLTIP || "Confidence of the confirmed sign, 0-255.");
+    }
+};
+
+export const smartcar_p4_end_decision = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_P4_END_DECISION || "P4 end decision session");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.SMARTCAR_P4_END_DECISION_TOOLTIP || "End the voting session and let the AI Eye board resume sending results. Call after finishing the sign manoeuvre.");
+    }
+};
+
+// ============================================
+// LINE FOLLOWING COMPOSITE BLOCKS
+// ============================================
+
+export const smartcar_ir_all_black = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_IR_ALL_BLACK || "all-black on line");
+        this.setOutput(true, Boolean);
+        this.setTooltip(Blockly.Msg.SMARTCAR_IR_ALL_BLACK_TOOLTIP || "True when all three line sensors see black (a stop marker). Update the IR sensors first.");
+    }
+};
+
+export const smartcar_follow_line_until_stop = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_FOLLOW_UNTIL || "follow line until");
+        this.appendDummyInput()
+            .appendField(new Blockly.FieldDropdown([
+                [Blockly.Msg.SMARTCAR_STOP_ALL_BLACK || "all-black marker", "allblack"],
+                [Blockly.Msg.SMARTCAR_STOP_ALL_BLACK_OR_RFID || "all-black marker or RFID tag", "allblack_rfid"]
+            ]), "TRIGGER");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.SMARTCAR_FOLLOW_UNTIL_TOOLTIP || "Follow the line with PID speed control until the stop trigger fires, then stop the car and continue with the next blocks (e.g. buzzer, then P4 wait until sign confirmed).");
+    }
+};
+
+export const smartcar_wait_until_centered = {
+    init: function () {
+        this.setColour(SMARTCAR_HUE);
+        this.appendDummyInput()
+            .appendField(Blockly.Msg.SMARTCAR_WAIT_CENTERED || "wait until centered on line");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip(Blockly.Msg.SMARTCAR_WAIT_CENTERED_TOOLTIP || "Wait until the car is centered on the line again (after a turn). Also stops if a stop trigger fires. Use together with the follow-line-until block.");
+    }
+};

@@ -865,6 +865,32 @@
         container.appendChild(monitorBtn);
         updateMonitorBtnState();
 
+        // Workshop demo — loads the ready-made road-sign block program
+        // (follow line → stop → AI Eye sign recognition → turn) in one click.
+        const demoBtn = document.createElement('button');
+        demoBtn.id = 'smartcar-demo-btn';
+        demoBtn.className = 'layui-btn layui-btn-xs layui-btn-primary mixly-nav';
+        demoBtn.innerHTML = '<a class="icon-play">' + msgText('PLUGIN_ROAD_SIGN_DEMO', 'Road-sign demo') + '</a>';
+        demoBtn.title = msgText('PLUGIN_ROAD_SIGN_DEMO_TIP', 'Load the road-sign workshop program (replaces the current blocks)');
+        demoBtn.onclick = () => {
+            const hasBlocks = workspaceBlockCount() > 0;
+            if (hasBlocks && !window.confirm(msgText('PLUGIN_ROAD_SIGN_DEMO_CONFIRM', 'Replace the current blocks with the road-sign demo program?'))) {
+                return;
+            }
+            fetch('/programs/road_sign_workshop.xml')
+                .then((r) => (r.ok ? r.text() : null))
+                .then((xml) => {
+                    if (!xml) {
+                        output('[SmartCar] Road-sign demo file not found.\n');
+                        return;
+                    }
+                    loadWorkspaceXml(xml);
+                    output('[SmartCar] Road-sign demo loaded — set the sign class numbers if your training order differs, then Compile & Upload to the S3 car.\n');
+                })
+                .catch(() => {});
+        };
+        container.appendChild(demoBtn);
+
         // Filename indicator (shows current file name)
         const filename = document.createElement('span');
         filename.id = 'smartcar-filename';

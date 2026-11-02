@@ -3424,6 +3424,21 @@
       </value>
     </block>
     <block type="smartcar_pid_update_loop"></block>
+    <block type="smartcar_follow_line_until_stop"></block>
+    <block type="smartcar_wait_until_centered"></block>
+    <block type="smartcar_ir_all_black"></block>
+    <block type="smartcar_p4_start_link"></block>
+    <block type="smartcar_p4_wait_sign_confirmed"></block>
+    <block type="smartcar_p4_sign_is_class">
+      <value name="CLASS">
+        <block type="math_number">
+          <field name="NUM">0</field>
+        </block>
+      </value>
+    </block>
+    <block type="smartcar_p4_confirmed_label"></block>
+    <block type="smartcar_p4_confirmed_confidence"></block>
+    <block type="smartcar_p4_end_decision"></block>
   </category>
 
   <!-- AI Vision Category -->
