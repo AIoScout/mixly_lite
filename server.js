@@ -82,6 +82,12 @@ function createServer(userOptions = {}) {
 
     // ── State (per server instance) ────────────────────────────
     let currentProcess = null;
+    // True from the moment a compile/upload starts mutating the shared
+    // sketch/library/build dirs until its arduino-cli exits. Serializes
+    // builds: a second task racing the first would rmSync the library and
+    // build directories out from under the running compiler and wedge the
+    // shell state until restart.
+    let buildBusy = false;
     const activeSerialPorts = new Map();
     const modelSessions = new Map(); // sessionId -> {tflitePath, labelsPath, createdAt}
     let BOARD_DEFAULTS = {};
@@ -515,12 +521,28 @@ ${preprocessToHeader(preprocessPath)}#endif
     }
 
     function runArduinoCLI(ws, cliArgs, layerNum, type) {
+        // Self-heal a stale busy flag (no process, no run) and refuse to
+        // spawn while another build owns the shared directories.
+        if (!currentProcess) buildBusy = false;
+        if (buildBusy || currentProcess) {
+            sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'operateEndError',
+                [type, layerNum, 'Error: another compile/upload is still running — wait for it to finish or press Stop first']);
+            return;
+        }
         console.log(`[cli] ${opts.arduinoCli} ${cliArgs.join(' ')}`);
-        currentProcess = execFile(opts.arduinoCli, cliArgs, {
+        buildBusy = true;
+        const proc = execFile(opts.arduinoCli, cliArgs, {
             env: { ...process.env, LANG: 'en_US.UTF-8' },
             maxBuffer: 10 * 1024 * 1024
         }, (error, stdout, stderr) => {
-            currentProcess = null;
+            // Only the owning process may clear the state: a killed or
+            // superseded process exiting late must not null the pointer
+            // (which would swallow the live run's output stream) while
+            // the next task holds it.
+            if (currentProcess === proc) {
+                currentProcess = null;
+                buildBusy = false;
+            }
             const output = (stdout || '') + (stderr || '');
             const target = aliveWs(ws);
 
@@ -532,6 +554,7 @@ ${preprocessToHeader(preprocessPath)}#endif
                 sendCommand(target, 'Mixly.WebSocket.ArduShell', 'operateSuccess', [type, layerNum, '', '115200', '0s']);
             }
         });
+        currentProcess = proc;
 
         // Stream output in real-time
         const stream = (data) => {
@@ -539,14 +562,22 @@ ${preprocessToHeader(preprocessPath)}#endif
             if (!currentProcess) return;
             sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'addValue', [chunk]);
         };
-        currentProcess.stdout?.on('data', stream);
-        currentProcess.stderr?.on('data', stream);
+        proc.stdout?.on('data', stream);
+        proc.stderr?.on('data', stream);
     }
 
     // ── Command Handlers ───────────────────────────────────────
     function handleCompile(ws, args) {
         const [layerNum, boardType, code, modelSessionId] = args.map(a => decodeURIComponent(a));
         console.log(`[compile] board=${boardType} model=${modelSessionId || 'none'}`);
+
+        if (!currentProcess) buildBusy = false; // self-heal stale flag
+        if (buildBusy) {
+            sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'operateEndError',
+                ['compile', layerNum, 'Error: another compile/upload is still running — wait for it to finish or press Stop first']);
+            return;
+        }
+        buildBusy = true;
 
         const useTFLite = code.includes('Mixly_TFLite');
 
@@ -560,6 +591,7 @@ ${preprocessToHeader(preprocessPath)}#endif
                     deployMixlyTFLiteLib(modelSessionId || null);
                 } catch (e) {
                     console.error('[tflite] deploy failed:', e.message);
+                    buildBusy = false;
                     sendCommand(ws, 'Mixly.WebSocket.ArduShell', 'addValue', [`[Error] ${e.message}\n`]);
                     sendCommand(ws, 'Mixly.WebSocket.ArduShell', 'operateEndError', ['compile', layerNum, '']);
                     return;
@@ -596,6 +628,14 @@ ${preprocessToHeader(preprocessPath)}#endif
             return;
         }
 
+        if (!currentProcess) buildBusy = false; // self-heal stale flag
+        if (buildBusy) {
+            sendCommand(aliveWs(ws), 'Mixly.WebSocket.ArduShell', 'operateEndError',
+                ['upload', layerNum, 'Error: another compile/upload is still running — wait for it to finish or press Stop first']);
+            return;
+        }
+        buildBusy = true;
+
         const useTFLite = code.includes('Mixly_TFLite');
 
         const doUpload = () => {
@@ -611,6 +651,7 @@ ${preprocessToHeader(preprocessPath)}#endif
                     deployMixlyTFLiteLib(modelSessionId || null);
                 } catch (e) {
                     console.error('[tflite] deploy failed:', e.message);
+                    buildBusy = false;
                     sendCommand(ws, 'Mixly.WebSocket.ArduShell', 'addValue', [`[Error] ${e.message}\n`]);
                     sendCommand(ws, 'Mixly.WebSocket.ArduShell', 'operateEndError', ['upload', layerNum, '']);
                     return;
@@ -640,8 +681,10 @@ ${preprocessToHeader(preprocessPath)}#endif
     function handleCancel() {
         if (currentProcess) {
             console.log('[cancel]');
+            // The killed process's exit callback clears currentProcess and
+            // buildBusy (identity-checked), keeping the lock lifecycle in
+            // one place.
             currentProcess.kill('SIGTERM');
-            currentProcess = null;
         }
     }
 
@@ -867,7 +910,9 @@ ${preprocessToHeader(preprocessPath)}#endif
             return new Promise((resolve) => {
                 if (currentProcess) {
                     try { currentProcess.kill('SIGTERM'); } catch { /* already gone */ }
-                    currentProcess = null;
+                    // Let the exit callback own the state clear (identity-
+                    // checked); nulling here would let its late callback
+                    // clear the lock during a newer run.
                 }
                 for (const [, entry] of activeSerialPorts) {
                     try { entry.serialPort.close(); } catch { /* already closed */ }
