@@ -293,3 +293,10 @@ ZhHans.SMARTCAR_P4_PLATE_INDEX_TOOLTIP = '最新有效数据包的车牌号（0-
 ZhHans.PLUGIN_TURNSTILE_HARDCODE = '车闸启动演示';
 ZhHans.PLUGIN_TURNSTILE_CAR = '车闸小车演示';
 ZhHans.PLUGIN_TURNSTILE_PLATE = '车闸车牌演示';
+
+ZhHans.PLUGIN_MONITOR = '监视器';
+ZhHans.PLUGIN_MONITOR_OPEN = '打开所选端口的串口监视器';
+ZhHans.PLUGIN_MONITOR_CLOSE = '关闭串口监视器';
+ZhHans.PLUGIN_SELECT_PORT_FIRST = '请先选择一个串口';
+
+ZhHans.PLUGIN_AI_BODY_STARTER = 'AI Body 入门程序';

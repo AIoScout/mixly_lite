@@ -551,7 +551,11 @@
     // anything else (S3) → AI Body program.
     function starterForCurrentBoard() {
         const fqbn = String(getBoardType() || '');
-        return fqbn.indexOf('p4') !== -1 ? '/programs/p4_ai_eye.xml' : '/programs/s3_ai_body.xml';
+        if (fqbn.indexOf('p4') !== -1) return '/programs/p4_ai_eye.xml';
+        // S3 default: the road-sign workshop program (the core classroom
+        // flow). The general-purpose AI Body starter stays one click away
+        // in the Open ▾ menu.
+        return '/programs/road_sign_workshop.xml';
     }
 
     // The workspace Mixly actually renders — the one with a flyout attached.
@@ -914,6 +918,11 @@
                 label: msgText('PLUGIN_ROAD_SIGN_DEMO', 'Road-sign project'),
                 icon: 'icon-play',
                 action: () => loadWorkshopProgram('/programs/road_sign_workshop.xml'),
+            },
+            {
+                label: msgText('PLUGIN_AI_BODY_STARTER', 'AI Body starter'),
+                icon: 'icon-folder-open',
+                action: () => loadWorkshopProgram('/programs/s3_ai_body.xml'),
             },
             {
                 label: msgText('PLUGIN_TURNSTILE_HARDCODE', 'Turnstile startup demo'),

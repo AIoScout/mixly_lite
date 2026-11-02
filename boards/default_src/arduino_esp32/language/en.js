@@ -297,3 +297,10 @@ En.SMARTCAR_P4_PLATE_INDEX_TOOLTIP = 'Plate index (0-253) of the latest valid pa
 En.PLUGIN_TURNSTILE_HARDCODE = 'Turnstile startup demo';
 En.PLUGIN_TURNSTILE_CAR = 'Turnstile car demo';
 En.PLUGIN_TURNSTILE_PLATE = 'Turnstile plate demo';
+
+En.PLUGIN_MONITOR = 'Monitor';
+En.PLUGIN_MONITOR_OPEN = 'Open serial monitor for the selected port';
+En.PLUGIN_MONITOR_CLOSE = 'Close serial monitor';
+En.PLUGIN_SELECT_PORT_FIRST = 'Please select a serial port first';
+
+En.PLUGIN_AI_BODY_STARTER = 'AI Body starter';

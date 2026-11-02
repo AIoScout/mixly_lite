@@ -293,3 +293,10 @@ ZhHant.SMARTCAR_P4_PLATE_INDEX_TOOLTIP = '最新有效封包的車牌號（0-253
 ZhHant.PLUGIN_TURNSTILE_HARDCODE = '閘門啟動示範';
 ZhHant.PLUGIN_TURNSTILE_CAR = '閘門小車示範';
 ZhHant.PLUGIN_TURNSTILE_PLATE = '閘門車牌示範';
+
+ZhHant.PLUGIN_MONITOR = '監視器';
+ZhHant.PLUGIN_MONITOR_OPEN = '開啟所選埠的序列監視器';
+ZhHant.PLUGIN_MONITOR_CLOSE = '關閉序列監視器';
+ZhHant.PLUGIN_SELECT_PORT_FIRST = '請先選擇一個序列埠';
+
+ZhHant.PLUGIN_AI_BODY_STARTER = 'AI Body 入門程式';
