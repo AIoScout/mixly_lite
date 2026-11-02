@@ -68,9 +68,18 @@ function resolveOptions(userOptions = {}) {
         // folder, the drop-in dir for Koil's camera Arduino libraries, and
         // the esp32p4 partition scheme (default = 1.2 MB APP, fits the
         // placeholder model; real 3.9 MB models need e.g. default_8MB).
-        signReaderDir: userOptions.signReaderDir || process.env.AIOSCOUT_SIGNREADER_DIR || path.join(resourceDir, '..', 'TFLite_Car_License'),
-        // The image-project firmware sketch (road-sign workshop): TFLite.ino.
-        imageFirmwareDir: process.env.AIOSCOUT_IMAGE_FIRMWARE_DIR || path.join(resourceDir, '..', 'TFLite'),
+        // Resolve the first existing candidate — dev layouts keep the
+        // sketches at the workspace root (TFLite_Car_License) and inside the
+        // training superproject (TFLite).
+        signReaderDir: process.env.AIOSCOUT_SIGNREADER_DIR
+            || [path.join(resourceDir, '..', 'TFLite_Car_License')].find((d) => fs.existsSync(path.join(d, 'TFLite_Sign.ino')))
+            || path.join(resourceDir, '..', 'TFLite_Car_License'),
+        imageFirmwareDir: process.env.AIOSCOUT_IMAGE_FIRMWARE_DIR
+            || [
+                path.join(resourceDir, '..', 'TFLite'),
+                path.join(resourceDir, '..', 'Google-Teachable-Machine-TFLite-model-training', 'TFLite')
+            ].find((d) => fs.existsSync(path.join(d, 'TFLite.ino')))
+            || path.join(resourceDir, '..', 'TFLite'),
         // Userspace dir holding the workshop custom core (esp32_mannual,
         // esp32 3.3.0 + bundled ESP32_P4_OV5647/IMX219 camera libraries +
         // the esp_video SDK headers). When absent, arduino-cli falls back to
