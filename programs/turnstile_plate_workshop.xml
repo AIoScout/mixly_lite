@@ -1,7 +1,11 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
-  <!-- Turnstile plate gate — startup sequence, then the AI Eye board (P4,
-       multi-plate firmware) confirms a hand-written plate three frames in a
-       row and the left motor adds a 0.5 s anticlockwise action. -->
+  <!--
+    Licence-plate gate controller (S3 on the gate) — listens to the AI Eye
+    (P4, plate firmware) over UART. Three confirmed frames of a registered
+    plate open the servo gate for 3 s, then it closes. Wire the gate servo
+    to the S3 GPIO pin set below (default 4) and the P4 UART as usual
+    (P4 TX11 → S3 RX44, P4 RX10 ← S3 TX43, GND).
+  -->
   <variables></variables>
   <block type="base_setup" x="0" y="0">
     <statement name="DO">
@@ -11,11 +15,9 @@
         <next>
           <block type="smartcar_p4_plate_start_link">
             <next>
-              <block type="smartcar_left_motor_sequence">
-                <value name="DUTY"><shadow type="math_number"><field name="NUM">17</field></shadow></value>
-                <value name="CW_MS"><shadow type="math_number"><field name="NUM">700</field></shadow></value>
-                <value name="PAUSE_MS"><shadow type="math_number"><field name="NUM">500</field></shadow></value>
-                <value name="ACW_MS"><shadow type="math_number"><field name="NUM">250</field></shadow></value>
+              <block type="smartcar_servo_set">
+                <value name="PIN"><shadow type="math_number"><field name="NUM">4</field></shadow></value>
+                <value name="ANGLE"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
               </block>
             </next>
           </block>
@@ -37,12 +39,23 @@
               <block type="smartcar_p4_plate_latest_index"></block>
             </value>
             <next>
-              <block type="smartcar_left_motor_run">
-                <field name="DIR">acw</field>
-                <value name="DUTY"><shadow type="math_number"><field name="NUM">17</field></shadow></value>
-                <value name="DURATION"><shadow type="math_number"><field name="NUM">500</field></shadow></value>
+              <block type="smartcar_servo_set">
+                <value name="PIN"><shadow type="math_number"><field name="NUM">4</field></shadow></value>
+                <value name="ANGLE"><shadow type="math_number"><field name="NUM">90</field></shadow></value>
                 <next>
-                  <block type="smartcar_p4_plate_action_done"></block>
+                  <block type="controls_delay">
+                    <field name="UNIT">millis</field>
+                    <value name="DELAY_TIME"><shadow type="math_number"><field name="NUM">3000</field></shadow></value>
+                    <next>
+                      <block type="smartcar_servo_set">
+                        <value name="PIN"><shadow type="math_number"><field name="NUM">4</field></shadow></value>
+                        <value name="ANGLE"><shadow type="math_number"><field name="NUM">0</field></shadow></value>
+                        <next>
+                          <block type="smartcar_p4_plate_action_done"></block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
                 </next>
               </block>
             </next>

@@ -633,3 +633,25 @@ export const smartcar_p4_plate_latest_index = function (_, generator) {
     smartcarAddPlateInclude(generator);
     return ['P4PlateReceiver::GetLabelId()', generator.ORDER_ATOMIC];
 };
+
+// ============================================
+// SERVO GENERATOR (50 Hz LEDC, no external lib)
+// ============================================
+
+export const smartcar_servo_set = function (_, generator) {
+    generator.definitions_['include_Arduino'] = '#include <Arduino.h>';
+    generator.definitions_['smartcar_servo_helper'] =
+        'void SmartCarServoWrite(int pin, int angle) {\n'
+        + '  static int attachedPin = -1;\n'
+        + '  if (attachedPin != pin) {\n'
+        + '    if (attachedPin >= 0) ledcDetach(attachedPin);\n'
+        + '    ledcAttach(pin, 50, 16);\n'
+        + '    attachedPin = pin;\n'
+        + '  }\n'
+        + '  const int us = angle * 2000 / 180 + 500;\n'
+        + '  ledcWrite(pin, (uint32_t)((uint64_t)us * 65535UL / 20000UL));\n'
+        + '}';
+    var pin = generator.valueToCode(this, 'PIN', generator.ORDER_ATOMIC) || '4';
+    var angle = generator.valueToCode(this, 'ANGLE', generator.ORDER_ATOMIC) || '0';
+    return 'SmartCarServoWrite(' + pin + ', ' + angle + ');\n';
+};

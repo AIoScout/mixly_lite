@@ -304,3 +304,8 @@ ZhHans.PLUGIN_AI_EYE_FIRMWARE = 'AI Eye 固件 (P4)';
 ZhHans.AIVISION_SIGN_FW = 'AI Eye 固件';
 ZhHans.AIVISION_SIGN_FW_SIGN = '路牌（image 模型）';
 ZhHans.AIVISION_SIGN_FW_PLATE = '车牌（sign 模型）';
+
+ZhHans.SMARTCAR_SERVO = '舵机';
+ZhHans.SMARTCAR_SERVO_PIN = '引脚';
+ZhHans.SMARTCAR_SERVO_ANGLE = '角度 °';
+ZhHans.SMARTCAR_SERVO_TOOLTIP = '把指定 GPIO 引脚上的舵机转到给定角度（0-180）。标准 500-2500 µs 脉宽、50 Hz。';

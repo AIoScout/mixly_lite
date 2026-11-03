@@ -308,3 +308,8 @@ En.PLUGIN_AI_EYE_FIRMWARE = 'AI Eye firmware (P4)';
 En.AIVISION_SIGN_FW = 'AI Eye firmware';
 En.AIVISION_SIGN_FW_SIGN = 'road signs (image model)';
 En.AIVISION_SIGN_FW_PLATE = 'licence plates (sign model)';
+
+En.SMARTCAR_SERVO = 'servo';
+En.SMARTCAR_SERVO_PIN = 'pin';
+En.SMARTCAR_SERVO_ANGLE = 'angle °';
+En.SMARTCAR_SERVO_TOOLTIP = 'Turn the servo on the given GPIO pin to an angle (0-180). Standard 500-2500 µs pulses at 50 Hz.';

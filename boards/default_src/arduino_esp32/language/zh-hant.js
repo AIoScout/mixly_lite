@@ -304,3 +304,8 @@ ZhHant.PLUGIN_AI_EYE_FIRMWARE = 'AI Eye 韌體 (P4)';
 ZhHant.AIVISION_SIGN_FW = 'AI Eye 韌體';
 ZhHant.AIVISION_SIGN_FW_SIGN = '路牌（image 模型）';
 ZhHant.AIVISION_SIGN_FW_PLATE = '車牌（sign 模型）';
+
+ZhHant.SMARTCAR_SERVO = '伺服馬達';
+ZhHant.SMARTCAR_SERVO_PIN = '腳位';
+ZhHant.SMARTCAR_SERVO_ANGLE = '角度 °';
+ZhHant.SMARTCAR_SERVO_TOOLTIP = '把指定 GPIO 腳位上的伺服馬達轉到給定角度（0-180）。標準 500-2500 µs 脈寬、50 Hz。';
