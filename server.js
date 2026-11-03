@@ -982,7 +982,11 @@ ${preprocessToHeader(preprocessPath)}#endif
                 const decodedArgs = args.map(a => {
                     try { return decodeURIComponent(a); } catch { return a; }
                 });
-                console.log(`[ws] ${obj}.${func}()`);
+                // The frontend polls Serial.list every few seconds — keep it
+                // out of the log or it drowns everything else.
+                if (!(obj === 'Serial' && func === 'list')) {
+                    console.log(`[ws] ${obj}.${func}()`);
+                }
 
                 if (obj === 'ArduShell') {
                     switch (func) {
