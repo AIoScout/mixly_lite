@@ -958,11 +958,6 @@
                 action: () => loadWorkshopProgram('/programs/turnstile_car_workshop.xml'),
             },
             {
-                label: msgText('PLUGIN_TURNSTILE_PLATE', 'Turnstile plate demo'),
-                icon: 'icon-play',
-                action: () => loadWorkshopProgram('/programs/turnstile_plate_workshop.xml'),
-            },
-            {
                 label: msgText('PLUGIN_AI_EYE_FIRMWARE', 'AI Eye firmware (P4)'),
                 icon: 'icon-flash',
                 action: () => openSignFirmwareProgram(),

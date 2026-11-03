@@ -292,7 +292,6 @@ En.SMARTCAR_P4_PLATE_INDEX = 'P4 latest plate #';
 En.SMARTCAR_P4_PLATE_INDEX_TOOLTIP = 'Plate index (0-253) of the latest valid packet, or 255 when no plate is visible.';
 En.PLUGIN_TURNSTILE_HARDCODE = 'Turnstile startup demo';
 En.PLUGIN_TURNSTILE_CAR = 'Turnstile car demo';
-En.PLUGIN_TURNSTILE_PLATE = 'Turnstile plate demo';
 
 En.PLUGIN_MONITOR = 'Monitor';
 En.PLUGIN_MONITOR_OPEN = 'Open serial monitor for the selected port';
@@ -309,7 +308,3 @@ En.AIVISION_SIGN_FW = 'AI Eye firmware';
 En.AIVISION_SIGN_FW_SIGN = 'road signs (image model)';
 En.AIVISION_SIGN_FW_PLATE = 'licence plates (sign model)';
 
-En.SMARTCAR_SERVO = 'servo';
-En.SMARTCAR_SERVO_PIN = 'pin';
-En.SMARTCAR_SERVO_ANGLE = 'angle °';
-En.SMARTCAR_SERVO_TOOLTIP = 'Turn the servo on the given GPIO pin to an angle (0-180). Standard 500-2500 µs pulses at 50 Hz.';

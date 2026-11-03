@@ -288,7 +288,6 @@ ZhHant.SMARTCAR_P4_PLATE_INDEX = 'P4 最新車牌號';
 ZhHant.SMARTCAR_P4_PLATE_INDEX_TOOLTIP = '最新有效封包的車牌號（0-253），看不到車牌時為 255。';
 ZhHant.PLUGIN_TURNSTILE_HARDCODE = '閘門啟動示範';
 ZhHant.PLUGIN_TURNSTILE_CAR = '閘門小車示範';
-ZhHant.PLUGIN_TURNSTILE_PLATE = '閘門車牌示範';
 
 ZhHant.PLUGIN_MONITOR = '監視器';
 ZhHant.PLUGIN_MONITOR_OPEN = '開啟所選埠的序列監視器';
@@ -305,7 +304,3 @@ ZhHant.AIVISION_SIGN_FW = 'AI Eye 韌體';
 ZhHant.AIVISION_SIGN_FW_SIGN = '路牌（image 模型）';
 ZhHant.AIVISION_SIGN_FW_PLATE = '車牌（sign 模型）';
 
-ZhHant.SMARTCAR_SERVO = '伺服馬達';
-ZhHant.SMARTCAR_SERVO_PIN = '腳位';
-ZhHant.SMARTCAR_SERVO_ANGLE = '角度 °';
-ZhHant.SMARTCAR_SERVO_TOOLTIP = '把指定 GPIO 腳位上的伺服馬達轉到給定角度（0-180）。標準 500-2500 µs 脈寬、50 Hz。';

@@ -595,21 +595,3 @@ export const smartcar_p4_plate_latest_index = {
         this.setTooltip(Blockly.Msg.SMARTCAR_P4_PLATE_INDEX_TOOLTIP || "Plate index (0-253) of the latest valid packet, or 255 when no plate is visible.");
     }
 };
-
-export const smartcar_servo_set = {
-    init: function () {
-        this.setColour(SMARTCAR_HUE);
-        this.appendDummyInput()
-            .appendField(Blockly.Msg.SMARTCAR_SERVO || "servo");
-        this.appendValueInput("PIN")
-            .setCheck(Number)
-            .appendField(Blockly.Msg.SMARTCAR_SERVO_PIN || "pin");
-        this.appendValueInput("ANGLE")
-            .setCheck(Number)
-            .appendField(Blockly.Msg.SMARTCAR_SERVO_ANGLE || "angle °");
-        this.setInputsInline(true);
-        this.setPreviousStatement(true, null);
-        this.setNextStatement(true, null);
-        this.setTooltip(Blockly.Msg.SMARTCAR_SERVO_TOOLTIP || "Turn the servo on the given GPIO pin to an angle (0-180). Standard 500-2500 µs pulses at 50 Hz; a second servo needs its own pin.");
-    }
-};

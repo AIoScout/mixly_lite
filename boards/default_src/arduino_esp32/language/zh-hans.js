@@ -288,7 +288,6 @@ ZhHans.SMARTCAR_P4_PLATE_INDEX = 'P4 最新车牌号';
 ZhHans.SMARTCAR_P4_PLATE_INDEX_TOOLTIP = '最新有效数据包的车牌号（0-253），看不到车牌时为 255。';
 ZhHans.PLUGIN_TURNSTILE_HARDCODE = '车闸启动演示';
 ZhHans.PLUGIN_TURNSTILE_CAR = '车闸小车演示';
-ZhHans.PLUGIN_TURNSTILE_PLATE = '车闸车牌演示';
 
 ZhHans.PLUGIN_MONITOR = '监视器';
 ZhHans.PLUGIN_MONITOR_OPEN = '打开所选端口的串口监视器';
@@ -305,7 +304,3 @@ ZhHans.AIVISION_SIGN_FW = 'AI Eye 固件';
 ZhHans.AIVISION_SIGN_FW_SIGN = '路牌（image 模型）';
 ZhHans.AIVISION_SIGN_FW_PLATE = '车牌（sign 模型）';
 
-ZhHans.SMARTCAR_SERVO = '舵机';
-ZhHans.SMARTCAR_SERVO_PIN = '引脚';
-ZhHans.SMARTCAR_SERVO_ANGLE = '角度 °';
-ZhHans.SMARTCAR_SERVO_TOOLTIP = '把指定 GPIO 引脚上的舵机转到给定角度（0-180）。标准 500-2500 µs 脉宽、50 Hz。';
