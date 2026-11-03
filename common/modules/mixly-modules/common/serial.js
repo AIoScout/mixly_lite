@@ -22,7 +22,7 @@ class Serial {
         this.DEFAULT_CONFIG = {
             ctrlCBtn: false,
             ctrlDBtn: false,
-            baudRates: 9600,
+            baudRates: 115200,   // all AIoScout firmware runs at 115200
             yMax: 100,
             yMin: 0,
             pointNum: 100,
