@@ -466,16 +466,19 @@ html[data-bs-theme=dark] body .mixly-footerbar .footerbar-item button:hover > a 
 }
 
 /* ── layui buttons (dialogs, loaders, everywhere else) ────── */
-html[data-bs-theme=light] body .layui-btn:not(.layui-btn-primary):not(.layui-btn-disabled):not(.layui-btn-warm):not(.layui-btn-danger),
-html[data-bs-theme=dark] body .layui-btn:not(.layui-btn-primary):not(.layui-btn-disabled):not(.layui-btn-warm):not(.layui-btn-danger) {
+/* .title/.option are the board-config footer rows (labels and value
+   pickers), not action buttons — the board-config template owns their
+   surfaces in both themes. */
+html[data-bs-theme=light] body .layui-btn:not(.layui-btn-primary):not(.layui-btn-disabled):not(.layui-btn-warm):not(.layui-btn-danger):not(.title):not(.option),
+html[data-bs-theme=dark] body .layui-btn:not(.layui-btn-primary):not(.layui-btn-disabled):not(.layui-btn-warm):not(.layui-btn-danger):not(.title):not(.option) {
     background-color: var(--as-primary) !important;
     border-color: var(--as-primary) !important;
     color: var(--as-on-primary) !important;
     border-radius: 0;
 }
 
-html[data-bs-theme=light] body .layui-btn:not(.layui-btn-primary):not(.layui-btn-disabled):not(.layui-btn-warm):not(.layui-btn-danger):hover,
-html[data-bs-theme=dark] body .layui-btn:not(.layui-btn-primary):not(.layui-btn-disabled):not(.layui-btn-warm):not(.layui-btn-danger):hover {
+html[data-bs-theme=light] body .layui-btn:not(.layui-btn-primary):not(.layui-btn-disabled):not(.layui-btn-warm):not(.layui-btn-danger):not(.title):not(.option):hover,
+html[data-bs-theme=dark] body .layui-btn:not(.layui-btn-primary):not(.layui-btn-disabled):not(.layui-btn-warm):not(.layui-btn-danger):not(.title):not(.option):hover {
     background-color: var(--as-orange) !important;
     border-color: var(--as-orange) !important;
     color: #ffffff !important;
