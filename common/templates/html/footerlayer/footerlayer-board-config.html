@@ -52,7 +52,13 @@
     }
 
     html[data-bs-theme=light] div[m-id="{{d.mId}}"] button.option {
-        background-color: var(--app-light-color);
+        background-color: #f3f4f3;
+        border: 1px solid #d8d9d8;
+        color: #1a1c1c;
+    }
+
+    html[data-bs-theme=light] div[m-id="{{d.mId}}"] button.option:hover {
+        border-color: #1a1c1c;
     }
 
     html[data-bs-theme=dark] div[m-id="{{d.mId}}"] button.option {

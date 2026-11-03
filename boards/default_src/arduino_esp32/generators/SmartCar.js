@@ -610,6 +610,18 @@ const smartcarAddPlateInclude = function (generator) {
 
 export const smartcar_p4_plate_start_link = function (_, generator) {
     smartcarAddPlateInclude(generator);
+    generator.definitions_['smartcar_p4_plate_config'] =
+        'static const char* SmartCarPlateText(uint8_t) { return "?"; }\n'
+        + 'static const P4PlateReceiver::Config SmartCarPlateConfig = {\n'
+        + '    254,                    // accept any plate index (P4 holds the whitelist)\n'
+        + '    SmartCarPlateText,\n'
+        + '    P4PlateReceiver::ConfirmationMode::Majority,\n'
+        + '    3,                      // votes required within the window\n'
+        + '    5,                      // collect 5 valid results, then decide\n'
+        + '    120,                    // minimum confidence, out of 255\n'
+        + '    "plate"\n'
+        + '};';
+    generator.setups_['smartcar_p4_plate_config'] = 'P4PlateReceiver::Configure(SmartCarPlateConfig);';
     generator.setups_['smartcar_p4_plate_start'] = 'P4PlateReceiver::StartCommunication();';
     return '';
 };
