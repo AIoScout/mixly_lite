@@ -3,8 +3,8 @@
     Road-sign workshop program — ESP32-S3 smart car + AI Eye (P4) over UART
     Follows the line until the all-black marker, honks twice, waits for the
     AI Eye board to confirm a road sign, then turns left (class 0) /
-    right (class 1) / stops (any other class). Class numbers follow the
-    class order in the AI Training app.
+    right (class 2) / stops (class 1 or any other class). Class numbers match
+    the bundled P4UartReceiver: LEFT=0, STOP=1, RIGHT=2.
     Wiring: P4 TX(11) → S3 RX(44), P4 RX(10) ← S3 TX(43), common GND.
   -->
   <variables></variables>
@@ -96,7 +96,7 @@
                                         </statement>
                                         <value name="IF1">
                                           <block type="smartcar_p4_sign_is_class">
-                                            <value name="CLASS"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+                                            <value name="CLASS"><shadow type="math_number"><field name="NUM">2</field></shadow></value>
                                           </block>
                                         </value>
                                         <statement name="DO1">

@@ -111,7 +111,7 @@ export const smartcar_get_distance_cm = function (_, generator) {
     generator.definitions_['include_SmartCar_UltrasonicSensor'] = '#include "SmartCar/UltrasonicSensor.hpp"';
     generator.setups_['smartcar_init_ultrasonic'] = 'UltrasonicSensor::Init();';
 
-    var code = 'UltrasonicSensor::GetDistance()';
+    var code = '(UltrasonicSensor::GetDistance() / 100.0f)';
     return [code, generator.ORDER_ATOMIC];
 };
 
