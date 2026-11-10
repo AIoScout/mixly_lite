@@ -1,6 +1,7 @@
 <xml xmlns="https://developers.google.com/blockly/xml">
-  <!-- Turnstile car — line tracking with ultrasonic obstacle stop/resume and
-       a right-turn bypass when the obstacle stays. RFID tags are reported. -->
+  <!-- Turnstile car — line tracking with ultrasonic obstacle stop/resume; if
+       the obstacle is still there after 10 s it beeps twice (2 kHz, 150 ms,
+       100 ms apart) and takes the right-turn bypass. RFID tags are reported. -->
   <variables></variables>
   <block type="base_setup" x="0" y="0">
     <statement name="DO">
@@ -41,9 +42,27 @@
                   </block>
                 </value>
                 <statement name="DO0">
-                  <block type="smartcar_rotate_right">
+                  <block type="smartcar_play_tone">
+                    <value name="FREQUENCY"><shadow type="math_number"><field name="NUM">2000</field></shadow></value>
+                    <value name="DURATION"><shadow type="math_number"><field name="NUM">150</field></shadow></value>
                     <next>
-                      <block type="smartcar_wait_until_centered"></block>
+                      <block type="controls_delay">
+                        <field name="UNIT">millis</field>
+                        <value name="DELAY_TIME"><shadow type="math_number"><field name="NUM">250</field></shadow></value>
+                        <next>
+                          <block type="smartcar_play_tone">
+                            <value name="FREQUENCY"><shadow type="math_number"><field name="NUM">2000</field></shadow></value>
+                            <value name="DURATION"><shadow type="math_number"><field name="NUM">150</field></shadow></value>
+                            <next>
+                              <block type="smartcar_rotate_right">
+                                <next>
+                                  <block type="smartcar_wait_until_centered"></block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
                     </next>
                   </block>
                 </statement>

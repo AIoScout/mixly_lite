@@ -1,0 +1,63 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <!--
+    Turnstile gate workshop program — the fixed gate unit. The arm swings
+    once at startup (clockwise 0.7 s, brake 0.5 s, anticlockwise 0.25 s at
+    17% duty), then the gate listens for the AI Eye (P4) to confirm a
+    licence plate (same plate 3 frames in a row). On confirmation the arm
+    swings again, the AI Eye is told the action is done, and the gate waits
+    10 s before listening for the next plate.
+    Wiring: P4 TX(11) → S3 RX(44), P4 RX(10) ← S3 TX(43), common GND.
+  -->
+  <variables></variables>
+
+  <!-- Setup: serial, P4 plate link, then the startup swing -->
+  <block type="base_setup" x="0" y="0">
+    <statement name="DO">
+      <block type="serial_begin">
+        <field name="serial_select">Serial</field>
+        <value name="CONTENT"><shadow type="math_number"><field name="NUM">115200</field></shadow></value>
+        <next>
+          <block type="smartcar_p4_plate_start_link">
+            <next>
+              <block type="smartcar_left_motor_sequence">
+                <value name="DUTY"><shadow type="math_number"><field name="NUM">17</field></shadow></value>
+                <value name="CW_MS"><shadow type="math_number"><field name="NUM">700</field></shadow></value>
+                <value name="PAUSE_MS"><shadow type="math_number"><field name="NUM">500</field></shadow></value>
+                <value name="ACW_MS"><shadow type="math_number"><field name="NUM">250</field></shadow></value>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+
+  <!-- Loop: poll the plate link; on a confirmed plate swing, ack, wait 10 s -->
+  <block type="smartcar_p4_plate_update" x="0" y="300">
+    <next>
+      <block type="controls_if">
+        <value name="IF0">
+          <block type="smartcar_p4_plate_ready"></block>
+        </value>
+        <statement name="DO0">
+          <block type="smartcar_left_motor_sequence">
+            <value name="DUTY"><shadow type="math_number"><field name="NUM">17</field></shadow></value>
+            <value name="CW_MS"><shadow type="math_number"><field name="NUM">700</field></shadow></value>
+            <value name="PAUSE_MS"><shadow type="math_number"><field name="NUM">500</field></shadow></value>
+            <value name="ACW_MS"><shadow type="math_number"><field name="NUM">250</field></shadow></value>
+            <next>
+              <block type="smartcar_p4_plate_action_done">
+                <next>
+                  <block type="controls_delay">
+                    <field name="UNIT">millis</field>
+                    <value name="DELAY_TIME"><shadow type="math_number"><field name="NUM">10000</field></shadow></value>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </next>
+  </block>
+</xml>

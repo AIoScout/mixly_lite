@@ -286,7 +286,7 @@ ZhHant.SMARTCAR_P4_PLATE_DONE = 'P4 車牌動作完成';
 ZhHant.SMARTCAR_P4_PLATE_DONE_TOOLTIP = '告訴 AI Eye 板車牌動作已結束，恢復發送結果。動作完成後呼叫。';
 ZhHant.SMARTCAR_P4_PLATE_INDEX = 'P4 最新車牌號';
 ZhHant.SMARTCAR_P4_PLATE_INDEX_TOOLTIP = '最新有效封包的車牌號（0-253），看不到車牌時為 255。';
-ZhHant.PLUGIN_TURNSTILE_HARDCODE = '閘門啟動示範';
+ZhHant.PLUGIN_TURNSTILE_GATE = '車牌閘門示範';
 ZhHant.PLUGIN_TURNSTILE_CAR = '閘門小車示範';
 
 ZhHant.PLUGIN_MONITOR = '監視器';

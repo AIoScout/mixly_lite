@@ -286,7 +286,7 @@ ZhHans.SMARTCAR_P4_PLATE_DONE = 'P4 车牌动作完成';
 ZhHans.SMARTCAR_P4_PLATE_DONE_TOOLTIP = '告诉 AI Eye 板车牌动作已结束，恢复发送结果。动作完成后调用。';
 ZhHans.SMARTCAR_P4_PLATE_INDEX = 'P4 最新车牌号';
 ZhHans.SMARTCAR_P4_PLATE_INDEX_TOOLTIP = '最新有效数据包的车牌号（0-253），看不到车牌时为 255。';
-ZhHans.PLUGIN_TURNSTILE_HARDCODE = '车闸启动演示';
+ZhHans.PLUGIN_TURNSTILE_GATE = '车牌闸门演示';
 ZhHans.PLUGIN_TURNSTILE_CAR = '车闸小车演示';
 
 ZhHans.PLUGIN_MONITOR = '监视器';

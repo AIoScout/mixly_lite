@@ -596,7 +596,7 @@
 
     // ── Built-in workshop programs (Open ▾ menu) ────────────
     // Loads a bundled block program, asking before replacing user blocks.
-    function loadWorkshopProgram(url) {
+    function loadWorkshopProgram(url, doneMsg) {
         const hasBlocks = workspaceBlockCount() > 0;
         if (hasBlocks && !window.confirm(msgText('PLUGIN_ROAD_SIGN_DEMO_CONFIRM', 'Replace the current blocks with this program?'))) {
             return;
@@ -609,7 +609,7 @@
                     return;
                 }
                 loadWorkspaceXml(xml);
-                output('[SmartCar] Road-sign demo loaded — set the sign class numbers if your training order differs, then Compile & Upload to the S3 car.\n');
+                output(doneMsg || '[SmartCar] Program loaded.\n');
             })
             .catch(() => {});
     }
@@ -945,17 +945,17 @@
             {
                 label: msgText('PLUGIN_ROAD_SIGN_DEMO', 'Road-sign project'),
                 icon: 'icon-play',
-                action: () => loadWorkshopProgram('/programs/road_sign_workshop.xml'),
+                action: () => loadWorkshopProgram('/programs/road_sign_workshop.xml', msgText('PLUGIN_ROAD_SIGN_DEMO_LOADED', '[SmartCar] Road-sign demo loaded — set the sign class numbers if your training order differs, then Compile & Upload to the S3 car.')),
             },
             {
-                label: msgText('PLUGIN_TURNSTILE_HARDCODE', 'Turnstile startup demo'),
+                label: msgText('PLUGIN_TURNSTILE_GATE', 'Turnstile gate (plate)'),
                 icon: 'icon-play',
-                action: () => loadWorkshopProgram('/programs/turnstile_hardcode_workshop.xml'),
+                action: () => loadWorkshopProgram('/programs/turnstile_gate_workshop.xml', msgText('PLUGIN_TURNSTILE_GATE_LOADED', "[SmartCar] Turnstile gate program loaded — the arm swings at startup and again when the AI Eye confirms a plate. Compile & Upload to the gate's S3 board.")),
             },
             {
                 label: msgText('PLUGIN_TURNSTILE_CAR', 'Turnstile car demo'),
                 icon: 'icon-play',
-                action: () => loadWorkshopProgram('/programs/turnstile_car_workshop.xml'),
+                action: () => loadWorkshopProgram('/programs/turnstile_car_workshop.xml', msgText('PLUGIN_TURNSTILE_CAR_LOADED', "[SmartCar] Turnstile car program loaded — beeps twice and turns right if the obstacle is still there after 10 s. Compile & Upload to the car's S3 board.")),
             },
             {
                 label: msgText('PLUGIN_AI_EYE_FIRMWARE', 'AI Eye firmware (P4)'),

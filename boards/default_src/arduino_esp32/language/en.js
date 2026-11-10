@@ -290,7 +290,7 @@ En.SMARTCAR_P4_PLATE_DONE = 'P4 plate action done';
 En.SMARTCAR_P4_PLATE_DONE_TOOLTIP = 'Tell the AI Eye board the plate action finished so it resumes sending results. Call after the manoeuvre.';
 En.SMARTCAR_P4_PLATE_INDEX = 'P4 latest plate #';
 En.SMARTCAR_P4_PLATE_INDEX_TOOLTIP = 'Plate index (0-253) of the latest valid packet, or 255 when no plate is visible.';
-En.PLUGIN_TURNSTILE_HARDCODE = 'Turnstile startup demo';
+En.PLUGIN_TURNSTILE_GATE = 'Turnstile gate (plate)';
 En.PLUGIN_TURNSTILE_CAR = 'Turnstile car demo';
 
 En.PLUGIN_MONITOR = 'Monitor';
