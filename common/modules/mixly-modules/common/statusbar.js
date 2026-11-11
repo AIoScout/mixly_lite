@@ -68,6 +68,9 @@ class StatusBar extends EditorAce {
             enableLiveAutocompletion: false
         });
         editor.setHighlightActiveLine(false);
+        // Console output (compile/upload log, serial monitor) wraps long
+        // lines instead of forcing a horizontal scrollbar.
+        editor.getSession().setUseWrapMode(true);
     }
 
     getContextMenu() {
